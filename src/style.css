@@ -125,7 +125,8 @@ body {
     align-items: center;
     /* padding: 20px 10px; */
     border: 4px solid transparent;
-    background: linear-gradient(black, black) padding-box,
+    background: linear-gradient(to right, black, black)
+            padding-box,
         linear-gradient(
                 to right,
                 rgb(114, 114, 114),
@@ -176,7 +177,7 @@ body {
 .calculator {
     width: 100%;
     background-color: black;
-    border-radius: 35px;
+    border-radius: 36px;
     padding: 20px;
     display: flex;
     flex-direction: column;
