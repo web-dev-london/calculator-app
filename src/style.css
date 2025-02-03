@@ -1,0 +1,230 @@
+/* :root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+#app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.vanilla:hover {
+  filter: drop-shadow(0 0 2em #3178c6aa);
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+} */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #e5e5e5;
+}
+.container {
+    padding-inline: 16px;
+}
+.phone {
+    position: relative;
+    max-width: 300px;
+    height: 625px;
+    background-color: white;
+    border-radius: 40px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* padding: 20px 10px; */
+    border: 4px solid transparent;
+    background: linear-gradient(black, black) padding-box,
+        linear-gradient(
+                to right,
+                rgb(114, 114, 114),
+                rgb(125, 124, 122)
+            )
+            border-box;
+    /* background: linear-gradient(to right, white, white),
+        linear-gradient(
+            to right,
+            rgb(136, 134, 134),
+            rgb(109, 109, 113),
+            rgb(161, 159, 159),
+            rgb(121, 121, 122)
+        );
+    background-clip: padding-box, border-box;
+    background-origin: padding-box, border-box; */
+}
+.left-buttons {
+    position: absolute;
+    top: 110px;
+    left: -5.5px;
+}
+.mode {
+    width: 2px;
+    height: 22px;
+    border-radius: 2px;
+    background-color: rgb(63, 61, 61);
+    margin-bottom: 20px;
+}
+.volume-up,
+.volume-down {
+    width: 2px;
+    height: 35px;
+    border-radius: 2px;
+    background-color: rgb(63, 61, 61);
+    margin-bottom: 12px;
+}
+
+.right-button {
+    position: absolute;
+    top: 165px;
+    right: -5.5px;
+    width: 2px;
+    height: 50px;
+    border-radius: 2px;
+    background-color: rgb(63, 61, 61);
+}
+.calculator {
+    width: 100%;
+    background-color: black;
+    border-radius: 35px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1 1 auto;
+}
+.display {
+    width: 100%;
+    height: 50px;
+    text-align: right;
+    font-size: 2.5em;
+    color: white;
+    padding: 0 20px 0 10px;
+    background: black;
+    border: none;
+    outline: none;
+    margin-bottom: 16px;
+}
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+    width: 100%;
+}
+button {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    font-size: 1.5em;
+    border: none;
+    outline: none;
+    cursor: pointer;
+}
+.gray {
+    background-color: #a5a5a5;
+}
+.dark {
+    background-color: #333;
+    color: white;
+}
+.orange {
+    background-color: #ff9500;
+    color: white;
+}
+.zero {
+    grid-column: span 2;
+    width: 100%;
+    border-radius: 35px;
+    padding-left: 25px;
+    text-align: left;
+}
