@@ -10,10 +10,6 @@
             name="viewport"
             content="width=device-width, initial-scale=1.0" />
         <title>iPhone Calculator</title>
-        <!-- Font Awesome -->
-        <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
     </head>
     <body>
         <div class="container">
@@ -23,7 +19,10 @@
                     <div class="camera"></div>
                 </div>
                 <div class="top-bar">
-                    <div class="time">9:41</div>
+                    <div class="time">
+                        <span class="hour"></span>:
+                        <span class="minute"></span>
+                    </div>
                     <ul class="top-bar-icons">
                         <li>
                             <svg
@@ -57,7 +56,6 @@
                         </li>
                     </ul>
                 </div>
-                .
                 <div class="left-buttons">
                     <div class="mode"></div>
                     <div class="volume-up"></div>
@@ -68,30 +66,68 @@
                     <input
                         type="text"
                         class="display"
-                        value="123,456,789"
-                        disabled />
+                        value="0" />
                     <div class="buttons">
-                        <button class="gray">AC</button>
-                        <button class="gray">+/-</button>
-                        <button class="gray">%</button>
-                        <button class="orange">÷</button>
-                        <button class="dark">7</button>
-                        <button class="dark">8</button>
-                        <button class="dark">9</button>
-                        <button class="orange">×</button>
-                        <button class="dark">4</button>
-                        <button class="dark">5</button>
-                        <button class="dark">6</button>
-                        <button class="orange">-</button>
-                        <button class="dark">1</button>
-                        <button class="dark">2</button>
-                        <button class="dark">3</button>
-                        <button class="orange">+</button>
-                        <button class="dark zero">
+                        <button class="gray ac">
+                            AC
+                        </button>
+                        <button class="gray pm">
+                            +/-
+                        </button>
+                        <button class="gray percent">
+                            %
+                        </button>
+                        <button class="orange division">
+                            ÷
+                        </button>
+                        <button class="dark number-7">
+                            7
+                        </button>
+                        <button class="dark number-8">
+                            8
+                        </button>
+                        <button class="dark number-9">
+                            9
+                        </button>
+                        <button
+                            class="orange multiplication">
+                            ×
+                        </button>
+                        <button class="dark number-4">
+                            4
+                        </button>
+                        <button class="dark number-5">
+                            5
+                        </button>
+                        <button class="dark number-6">
+                            6
+                        </button>
+                        <button
+                            class="orange subtraction">
+                            –
+                        </button>
+                        <button class="dark number-1">
+                            1
+                        </button>
+                        <button class="dark number-2">
+                            2
+                        </button>
+                        <button class="dark number-3">
+                            3
+                        </button>
+                        <button class="orange addition">
+                            +
+                        </button>
+                        <button
+                            class="dark zero number-0">
                             0
                         </button>
-                        <button class="dark">.</button>
-                        <button class="orange">=</button>
+                        <button class="dark decimal">
+                            .
+                        </button>
+                        <button class="orange equal">
+                            =
+                        </button>
                     </div>
                 </div>
                 <div class="menu-button"></div>
