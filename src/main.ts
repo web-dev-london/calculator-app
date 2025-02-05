@@ -56,7 +56,7 @@ const formatNumber = (num: string) => {
   let [integerPart, decimalPart] = number.toFixed(8).split(".");
 
   // Format integer part with commas
-  integerPart = parseInt(integerPart).toLocaleString("en-US");
+  integerPart = Number(integerPart).toLocaleString("en-US");
 
   // Remove unnecessary trailing zeros in the decimal part
   decimalPart = decimalPart?.replace(/0+$/, "");
@@ -69,7 +69,11 @@ const formatNumber = (num: string) => {
 
 const updateDisplay = () => {
   if (display instanceof HTMLInputElement) {
-    display.value = currentInput ? formatNumber(currentInput) : "0";
+    if (currentInput === "-0") {
+      display.value = "-0";
+    } else {
+      display.value = currentInput ? formatNumber(currentInput) : "0";
+    }
   }
 };
 
@@ -116,10 +120,12 @@ const resetCalculator = () => {
 ac?.addEventListener("click", resetCalculator);
 
 pm?.addEventListener("click", () => {
-  if (currentInput) {
+  if (currentInput === "0") {
+    currentInput = "-0";
+  } else if (currentInput) {
     currentInput = (parseFloat(currentInput.replace(/,/g, "")) * -1).toString();
-    updateDisplay();
   }
+  updateDisplay();
 });
 
 percent?.addEventListener("click", () => {
@@ -134,7 +140,7 @@ const handleOperator = (op: string) => {
     previousInput = currentInput.replace(/,/g, "");
     currentInput = "";
     operator = op;
-    updateAcButton();
+    // updateAcButton();
   }
 };
 

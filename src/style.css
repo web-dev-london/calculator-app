@@ -273,7 +273,7 @@ button {
 }
 button:active,
 button:focus {
-    filter: brightness(120%);
+    filter: brightness(130%);
 }
 .gray {
     background-color: #a5a5a5;
