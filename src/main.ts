@@ -1,7 +1,5 @@
 import './style.css'
 
-const hour = document.querySelector('.hour')
-const minute = document.querySelector('.minute')
 
 class Calculator {
   private displayElement: HTMLInputElement;
@@ -94,20 +92,27 @@ class Calculator {
   }
 
   private compute(): void {
-    // Check for division by zero
-    if (this.operation === "÷" && this.currentInput === "0") {
-      this.displayError("Cannot divide by zero");
-      return;
-    }
-
-    let result: number;
     const prev = parseFloat(this.previousInput);
     const current = parseFloat(this.currentInput);
 
-    // Handle invalid inputs (NaN)
+    // If there is no valid second number, show an error
+    if (this.currentInput === "") {
+      this.displayError("Error");
+      return;
+    }
+
+    // Handle division by zero and 0 ÷ 0 separately
+    if (this.operation === "÷") {
+      if (current === 0) {
+        this.displayError("Error");
+        return;
+      }
+    }
+
+    let result: number;
+
     if (isNaN(prev) || isNaN(current)) return;
 
-    // Perform operation based on the operation type
     switch (this.operation) {
       case "+":
         result = prev + current;
@@ -125,7 +130,6 @@ class Calculator {
         return;
     }
 
-    // Update the current input with the result and reset necessary states
     this.currentInput = result.toString();
     this.operation = null;
     this.previousInput = "";
@@ -133,17 +137,20 @@ class Calculator {
   }
 
   private clear(): void {
-    this.currentInput = "";
+    this.currentInput = "0"; // Ensures reset to 0
     this.previousInput = "";
     this.operation = null;
+    this.isResultDisplayed = false;
     this.updateDisplay();
     this.updateACButton();
   }
 
+
   private clearCurrentInput(): void {
-    this.currentInput = "0";
-    this.previousInput = "";
-    this.operation = null;
+    this.currentInput = ""; // Empty instead of setting to "0"
+    if (!this.operation) {
+      this.previousInput = "";
+    }
     this.isResultDisplayed = false;
     this.updateDisplay();
     this.updateACButton();
@@ -164,20 +171,32 @@ class Calculator {
   }
 
   private updateDisplay(): void {
+    if (this.displayElement.value === "Error") return; // Preserve error message
     this.displayElement.value = this.currentInput || this.previousInput || '0';
   }
 
+
   private displayError(message: string): void {
     this.displayElement.value = message;
-    setTimeout(() => this.clear(), 1500); // Clear the error message after 1.5 seconds
+
+    // Set an internal state to track error occurred
+    this.currentInput = "";
+    this.previousInput = "";
+    this.operation = null;
+    this.isResultDisplayed = true;
+
+    // Ensure AC button resets properly
+    this.updateACButton();
   }
+
+
 
   private updateACButton(): void {
     if (this.acButton) {
       if (this.currentInput !== "0" && (this.currentInput || this.previousInput)) {
         this.acButton.innerText = "C";
       } else {
-        this.acButton.innerText = "AC"; // Default behavior (clear all)
+        this.acButton.innerText = "AC";
       }
     }
   }
@@ -189,21 +208,56 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+class Clock {
+  private hourElement: HTMLElement | null;
+  private minuteElement: HTMLElement | null;
 
-// Set up the time
-const updateTime = () => {
-  const currentTime = new Date()
+  constructor(hourSelector: string, minuteSelector: string) {
+    this.hourElement = document.querySelector(hourSelector);
+    this.minuteElement = document.querySelector(minuteSelector);
 
-  const currentHour = currentTime.getHours()
-  const currentMinute = currentTime.getMinutes()
+    this.updateTime();
+    setInterval(() => this.updateTime(), 1000);
+  }
 
-  let displayHour = currentHour % 12 || 12;
+  private updateTime(): void {
+    const currentTime = new Date();
+    const currentHour = currentTime.getHours();
+    const currentMinute = currentTime.getMinutes();
 
-  if (hour) hour.textContent = displayHour.toString().padStart(2, "0");
-  if (minute) minute.textContent = currentMinute.toString().padStart(2, "0");
+    let displayHour = currentHour % 12 || 12;
+
+    if (this.hourElement) {
+      this.hourElement.textContent = displayHour.toString().padStart(2, "0");
+    }
+    if (this.minuteElement) {
+      this.minuteElement.textContent = currentMinute.toString().padStart(2, "0");
+    }
+  }
 }
-setInterval(updateTime, 1000);
-updateTime()
+
+// Initialize the Clock instance
+new Clock('.hour', '.minute');
+
+
+
+// const hour = document.querySelector('.hour')
+// const minute = document.querySelector('.minute')
+
+// // Set up the time
+// const updateTime = () => {
+//   const currentTime = new Date()
+
+//   const currentHour = currentTime.getHours()
+//   const currentMinute = currentTime.getMinutes()
+
+//   let displayHour = currentHour % 12 || 12;
+
+//   if (hour) hour.textContent = displayHour.toString().padStart(2, "0");
+//   if (minute) minute.textContent = currentMinute.toString().padStart(2, "0");
+// }
+// setInterval(updateTime, 1000);
+// updateTime()
 
 
 // const formatNumber = (num: string) => {
