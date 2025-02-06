@@ -10,10 +10,6 @@ class Calculator {
   private operation: string | null = null;
   private acButton: HTMLButtonElement | null = null;
   private isResultDisplayed: boolean = false;
-  private lastOperand: string = "";
-  private lastOperation: string | null = null;
-
-
 
   constructor(displaySelector: string) {
     this.displayElement = document.querySelector(displaySelector) as HTMLInputElement;
@@ -44,7 +40,7 @@ class Calculator {
     if (key === "Enter") {
       this.handleInput("=");
     } else if (key === "Backspace") {
-      this.handleInput("AC");
+      this.handleInput("C"); // Clear current input when backspace is pressed
     } else {
       this.handleInput(key);
     }
@@ -63,12 +59,12 @@ class Calculator {
       this.compute();
     } else if (value === "AC") {
       this.clear();
+    } else if (value === "C") {
+      this.clearCurrentInput();
     } else if (value === "+/-") {
       this.toggleSign();
     } else if (value === "%") {
       this.percent();
-    } else if (value === "C") {
-      this.clearCurrentInput();
     }
     this.updateDisplay();
     this.updateACButton();
@@ -98,8 +94,9 @@ class Calculator {
   }
 
   private compute(): void {
+    // Check for division by zero
     if (this.operation === "÷" && this.currentInput === "0") {
-      this.displayError("Zero can'tbe divided by zero");
+      this.displayError("Cannot divide by zero");
       return;
     }
 
@@ -107,16 +104,28 @@ class Calculator {
     const prev = parseFloat(this.previousInput);
     const current = parseFloat(this.currentInput);
 
+    // Handle invalid inputs (NaN)
     if (isNaN(prev) || isNaN(current)) return;
 
+    // Perform operation based on the operation type
     switch (this.operation) {
-      case "+": result = prev + current; break;
-      case "–": result = prev - current; break;
-      case "×": result = prev * current; break;
-      case "÷": result = prev / current; break;
-      default: return;
+      case "+":
+        result = prev + current;
+        break;
+      case "–":
+        result = prev - current;
+        break;
+      case "×":
+        result = prev * current;
+        break;
+      case "÷":
+        result = prev / current;
+        break;
+      default:
+        return;
     }
 
+    // Update the current input with the result and reset necessary states
     this.currentInput = result.toString();
     this.operation = null;
     this.previousInput = "";
@@ -132,7 +141,10 @@ class Calculator {
   }
 
   private clearCurrentInput(): void {
-    this.currentInput = "";
+    this.currentInput = "0";
+    this.previousInput = "";
+    this.operation = null;
+    this.isResultDisplayed = false;
     this.updateDisplay();
     this.updateACButton();
   }
@@ -162,8 +174,7 @@ class Calculator {
 
   private updateACButton(): void {
     if (this.acButton) {
-      // If there's input, change "AC" to "C" to allow clearing the current input
-      if (this.currentInput || this.previousInput) {
+      if (this.currentInput !== "0" && (this.currentInput || this.previousInput)) {
         this.acButton.innerText = "C";
       } else {
         this.acButton.innerText = "AC"; // Default behavior (clear all)
@@ -171,6 +182,7 @@ class Calculator {
     }
   }
 }
+
 
 document.addEventListener("DOMContentLoaded", () => {
   new Calculator(".display");
