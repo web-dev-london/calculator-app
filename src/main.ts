@@ -16,15 +16,12 @@ class Calculator {
   }
 
   private initialize(): void {
-    // Add event listeners for buttons
     document.querySelectorAll("button").forEach(button => {
       button.addEventListener("click", () => this.buttonClickHandler(button));
     });
 
-    // Add keyboard support
     window.addEventListener("keydown", (e) => this.keyboardHandler(e));
 
-    // Update button text based on current input
     this.updateACButton();
   }
 
@@ -38,7 +35,7 @@ class Calculator {
     if (key === "Enter") {
       this.handleInput("=");
     } else if (key === "Backspace") {
-      this.handleInput("C"); // Clear current input when backspace is pressed
+      this.handleInput("C");
     } else {
       this.handleInput(key);
     }
@@ -47,7 +44,7 @@ class Calculator {
   private handleInput(value: string): void {
     if (!isNaN(Number(value)) || value === ".") {
       if (this.isResultDisplayed) {
-        this.currentInput = ""; // Reset if a number is pressed after "="
+        this.currentInput = "";
         this.isResultDisplayed = false;
       }
       this.appendNumber(value);
@@ -69,9 +66,9 @@ class Calculator {
   }
 
   private appendNumber(number: string): void {
-    if (number === "." && this.currentInput.includes(".")) return; // Prevent multiple decimals
+    if (number === "." && this.currentInput.includes(".")) return;
     if (number === "." && this.currentInput === "") {
-      this.currentInput = "0."; // Prevent starting with a decimal
+      this.currentInput = "0.";
       return;
     }
     if (this.currentInput === "0" && number !== ".") {
@@ -82,27 +79,38 @@ class Calculator {
   }
 
   private chooseOperation(op: string): void {
-    if (this.currentInput === "") return; // Do nothing if no input yet
-    if (this.previousInput !== "") {
-      this.compute(); // Compute if there is a previous input
-    }
-    this.operation = op;
-    this.previousInput = this.currentInput;
-    this.currentInput = ""; // Don't clear until next number input
-  }
-
-  private compute(): void {
-    const prev = parseFloat(this.previousInput);
-    const current = parseFloat(this.currentInput);
-
-    // If there is no valid second number, show an error
-    if (this.currentInput === "") {
+    if (this.operation === "÷" && op === "÷") {
       this.displayError("Error");
       return;
     }
 
-    // Handle division by zero and 0 ÷ 0 separately
+    if (this.currentInput === "") return;
+    if (this.previousInput !== "") {
+      this.compute();
+    }
+
+    this.operation = op;
+    this.previousInput = this.currentInput;
+    this.currentInput = "";
+  }
+
+
+  private compute(): void {
+    if (!this.operation) return;
+
+    let prev = parseFloat(this.previousInput);
+    let current = parseFloat(this.currentInput);
+
+    if (isNaN(prev) || isNaN(current)) {
+      this.displayError("Error");
+      return;
+    }
+
     if (this.operation === "÷") {
+      if (prev === 0 && current === 0) {
+        this.displayError("Error");
+        return;
+      }
       if (current === 0) {
         this.displayError("Error");
         return;
@@ -110,9 +118,6 @@ class Calculator {
     }
 
     let result: number;
-
-    if (isNaN(prev) || isNaN(current)) return;
-
     switch (this.operation) {
       case "+":
         result = prev + current;
@@ -131,13 +136,15 @@ class Calculator {
     }
 
     this.currentInput = result.toString();
+    this.previousInput = this.currentInput;
     this.operation = null;
-    this.previousInput = "";
     this.isResultDisplayed = true;
   }
 
+
+
   private clear(): void {
-    this.currentInput = "0"; // Ensures reset to 0
+    this.currentInput = "0";
     this.previousInput = "";
     this.operation = null;
     this.isResultDisplayed = false;
@@ -145,16 +152,23 @@ class Calculator {
     this.updateACButton();
   }
 
-
   private clearCurrentInput(): void {
-    this.currentInput = ""; // Empty instead of setting to "0"
-    if (!this.operation) {
+    if (this.isResultDisplayed) {
+      this.clear(); // If a result was already displayed, do a full reset
+      return;
+    }
+
+    if (this.operation) {
+      this.currentInput = "0"; // Reset only the second number, keeping the previousInput
+    } else {
+      this.currentInput = "0"; // Ensure reset to zero instead of empty string
       this.previousInput = "";
     }
-    this.isResultDisplayed = false;
+
     this.updateDisplay();
     this.updateACButton();
   }
+
 
   private toggleSign(): void {
     if (this.currentInput === "0") {
@@ -171,36 +185,38 @@ class Calculator {
   }
 
   private updateDisplay(): void {
-    if (this.displayElement.value === "Error") return; // Preserve error message
-    this.displayElement.value = this.currentInput || this.previousInput || '0';
+    if (this.displayElement.value === "Error") return;
+    this.displayElement.value = this.currentInput || this.previousInput || "0";
   }
 
 
   private displayError(message: string): void {
     this.displayElement.value = message;
-
-    // Set an internal state to track error occurred
     this.currentInput = "";
     this.previousInput = "";
     this.operation = null;
     this.isResultDisplayed = true;
 
-    // Ensure AC button resets properly
-    this.updateACButton();
+    if (this.acButton) {
+      this.acButton.innerText = "AC";
+    }
   }
 
 
 
   private updateACButton(): void {
-    if (this.acButton) {
-      if (this.currentInput !== "0" && (this.currentInput || this.previousInput)) {
-        this.acButton.innerText = "C";
-      } else {
-        this.acButton.innerText = "AC";
-      }
+    if (!this.acButton) return;
+
+    if (this.displayElement.value === "Error" || (this.currentInput === "" && this.previousInput === "")) {
+      this.acButton.innerText = "AC";
+    } else {
+      this.acButton.innerText = "C";
     }
   }
+
+
 }
+
 
 
 document.addEventListener("DOMContentLoaded", () => {
