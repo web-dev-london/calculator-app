@@ -42,6 +42,12 @@ class Calculator {
   }
 
   private handleInput(value: string): void {
+    // Ensure AC properly resets after an error
+    if (this.displayElement.value === "Error" && value === "AC") {
+      this.clear();
+      return;
+    }
+
     if (!isNaN(Number(value)) || value === ".") {
       if (this.isResultDisplayed) {
         this.currentInput = "";
@@ -148,7 +154,7 @@ class Calculator {
     this.previousInput = "";
     this.operation = null;
     this.isResultDisplayed = false;
-    this.updateDisplay();
+    this.displayElement.value = "0";
     this.updateACButton();
   }
 
@@ -205,14 +211,15 @@ class Calculator {
 
 
   private updateACButton(): void {
-    if (!this.acButton) return;
-
-    if (this.displayElement.value === "Error" || (this.currentInput === "" && this.previousInput === "")) {
-      this.acButton.innerText = "AC";
-    } else {
-      this.acButton.innerText = "C";
+    if (this.acButton) {
+      if (this.displayElement.value === "Error" || this.currentInput === "0") {
+        this.acButton.innerText = "AC"; // Reset to "AC" on error or initial state
+      } else {
+        this.acButton.innerText = "C"; // Show "C" when any number (1-9) is entered
+      }
     }
   }
+
 
 
 }
