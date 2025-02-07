@@ -13,6 +13,7 @@ class Calculator {
     this.displayElement = document.querySelector(displaySelector) as HTMLInputElement;
     this.acButton = document.querySelector(".ac") as HTMLButtonElement;
     this.initialize();
+    this.updateACButton();
   }
 
   private initialize(): void {
@@ -208,26 +209,30 @@ class Calculator {
     }
   }
 
-
-
   private updateACButton(): void {
     if (this.acButton) {
+      // AC should remain if display is "Error" or input is "0"
       if (this.displayElement.value === "Error" || this.currentInput === "0") {
         this.acButton.innerText = "AC"; // Reset to "AC" on error or initial state
-      } else {
-        this.acButton.innerText = "C"; // Show "C" when any number (1-9) is entered
+      } // Ensure pressing "+/-" does not change AC to C
+      else if (this.operation === null && this.currentInput !== "-0" && this.currentInput !== "0") {
+        this.acButton.innerText = "C";
       }
     }
   }
 
-
-
+  // Public method to reset the AC button after page reload
+  public resetACButton(): void {
+    if (this.acButton) {
+      this.acButton.innerText = "AC";
+    }
+  }
 }
 
 
-
 document.addEventListener("DOMContentLoaded", () => {
-  new Calculator(".display");
+  const calculator = new Calculator(".display");
+  calculator.resetACButton();
 });
 
 
