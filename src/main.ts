@@ -5,6 +5,8 @@ class Calculator {
   private displayElement: HTMLInputElement;
   private currentInput: string = "";
   private previousInput: string = "";
+  private lastOperand: string | null = null; // NEW: Stores last operand for repeated "="
+  private lastOperator: string | null = null; // NEW: Stores last operator for repeated "="
   private operation: string | null = null;
   private acButton: HTMLButtonElement | null = null;
   private isResultDisplayed: boolean = false;
@@ -13,7 +15,7 @@ class Calculator {
     this.displayElement = document.querySelector(displaySelector) as HTMLInputElement;
     this.acButton = document.querySelector(".ac") as HTMLButtonElement;
     this.initialize();
-    this.updateACButton();
+    this.resetACButton();
   }
 
   private initialize(): void {
@@ -72,19 +74,6 @@ class Calculator {
     this.updateACButton();
   }
 
-  private appendNumber(number: string): void {
-    if (number === "." && this.currentInput.includes(".")) return;
-    if (number === "." && this.currentInput === "") {
-      this.currentInput = "0.";
-      return;
-    }
-    if (this.currentInput === "0" && number !== ".") {
-      this.currentInput = number;
-      return;
-    }
-    this.currentInput += number;
-  }
-
   private chooseOperation(op: string): void {
     if (this.operation === "÷" && op === "÷") {
       this.displayError("Error");
@@ -99,29 +88,37 @@ class Calculator {
     this.operation = op;
     this.previousInput = this.currentInput;
     this.currentInput = "";
+
+    this.lastOperator = op;
+    this.lastOperand = null; // NEW: Reset lastOperand for repeated "="
   }
 
 
   private compute(): void {
-    if (!this.operation) return;
-
     let prev = parseFloat(this.previousInput);
     let current = parseFloat(this.currentInput);
 
-    if (isNaN(prev) || isNaN(current)) {
+
+    // If "=" is pressed again, reuse the last operation & operand
+    if (this.isResultDisplayed && this.lastOperand !== null && this.lastOperator !== null) {
+      prev = parseFloat(this.previousInput); // Use last result
+      current = parseFloat(this.lastOperand); // Reuse last operand
+      this.operation = this.lastOperator; // Restore last operation
+    }
+
+    // Handle case where operation is set but no second number was entered
+    if (this.currentInput === "" && this.operation !== null) {
+      current = prev; // Repeat the previous number
+    }
+
+    if (isNaN(prev) || isNaN(current) || this.operation === null) {
       this.displayError("Error");
       return;
     }
 
-    if (this.operation === "÷") {
-      if (prev === 0 && current === 0) {
-        this.displayError("Error");
-        return;
-      }
-      if (current === 0) {
-        this.displayError("Error");
-        return;
-      }
+    if (this.operation === "÷" && current === 0) {
+      this.displayError("Error");
+      return;
     }
 
     let result: number;
@@ -143,12 +140,31 @@ class Calculator {
     }
 
     this.currentInput = result.toString();
-    this.previousInput = this.currentInput;
-    this.operation = null;
+    this.previousInput = result.toString(); // Store result properly
     this.isResultDisplayed = true;
+
+    // ✅ Store values for repeated "=" presses
+    this.lastOperand = current.toString(); // Keep the operand
+    this.lastOperator = this.operation; // Keep the operation
+
+    this.operation = null;
+    this.updateACButton();
   }
 
 
+
+  private appendNumber(number: string): void {
+    if (number === "." && this.currentInput.includes(".")) return;
+    if (number === "." && this.currentInput === "") {
+      this.currentInput = "0.";
+      return;
+    }
+    if (this.currentInput === "0" && number !== ".") {
+      this.currentInput = number;
+      return;
+    }
+    this.currentInput += number;
+  }
 
   private clear(): void {
     this.currentInput = "0";
