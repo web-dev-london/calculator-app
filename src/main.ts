@@ -305,7 +305,7 @@ class Calculator {
 
 
   private toggleSign(): void {
-    if (this.currentInput === "0") {
+    if (this.currentInput === "0" || this.displayElement.value === "0") {
       this.currentInput = "-0";
     } else if (this.currentInput) {
       this.currentInput = (parseFloat(this.currentInput) * -1).toString();
