@@ -37,17 +37,6 @@ class Calculator {
     this.handleInput(value);
   }
 
-  private keyboardHandler(e: KeyboardEvent): void {
-    const key = e.key;
-    if (key === "Enter") {
-      this.handleInput("=");
-    } else if (key === "Backspace") {
-      this.handleInput("C");
-    } else {
-      this.handleInput(key);
-    }
-  }
-
   private handleInput(value: string): void {
     // Ensure AC properly resets after an error
     if (this.displayElement.value === "Error" || this.displayElement.value === "0") {
@@ -78,6 +67,17 @@ class Calculator {
     }
     this.updateDisplay();
     this.updateACButton();
+  }
+
+  private keyboardHandler(e: KeyboardEvent): void {
+    const key = e.key;
+    if (key === "Enter") {
+      this.handleInput("=");
+    } else if (key === "Backspace") {
+      this.handleInput("C");
+    } else {
+      this.handleInput(key);
+    }
   }
 
   // private chooseOperation(op: string): void {
@@ -194,6 +194,7 @@ class Calculator {
   // }
 
   private compute(): void {
+    // if (this.operation === null) return;
     let prev = parseFloat(this.previousInput || "0");
     let current = parseFloat(this.currentInput || "0");
 
@@ -203,6 +204,8 @@ class Calculator {
       current = parseFloat(this.lastOperand); // Reuse last operand if "=" is pressed again
       prev = parseFloat(this.previousInput);  // Use last result if "=" is pressed again
       this.operation = this.lastOperator;     // Restore last operator
+    } else if (this.operation === null) {
+      return; // Ensure "=" doesn't trigger an error without an operation
     }
 
     // Handle case where operation is set but no second number was entered
@@ -210,7 +213,7 @@ class Calculator {
       current = prev; // Repeat the previous number if there's no new input
     }
 
-    if (isNaN(prev) || isNaN(current) || this.operation === null) {
+    if (isNaN(prev) || isNaN(current)) {
       this.displayError("Error");
       return;
     }
