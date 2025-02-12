@@ -110,8 +110,14 @@ class Calculator {
       return;
     }
 
-    if (this.currentInput === "") return;
+    // If the user enters an operator without a number, do nothing
+    if (this.currentInput === "" && this.previousInput === "") return;
 
+    // If the user presses multiple operators in a row, replace the last one
+    if (this.previousInput !== "" && this.currentInput === "") {
+      this.operation = op;  // Replace last operator
+      return;
+    }
 
     // Case when user switches the operator after a result: reset previous result and operand
     if (this.isResultDisplayed) {
@@ -137,23 +143,26 @@ class Calculator {
   }
 
   // private compute(): void {
-  //   let prev = parseFloat(this.previousInput);
-  //   let current = parseFloat(this.currentInput);
+  //   // if (this.operation === null) return;
+  //   let prev = parseFloat(this.previousInput || "0");
+  //   let current = parseFloat(this.currentInput || "0");
 
-
-  //   // If "=" is pressed again, reuse the last operation & operand
+  //   // If "=" is pressed again, use the last operator and operand
   //   if (this.isResultDisplayed && this.lastOperand !== null && this.lastOperator !== null) {
-  //     current = parseFloat(this.lastOperand); // Reuse last operand
-  //     prev = parseFloat(this.previousInput); // Use last result
-  //     this.operation = this.lastOperator; // Restore last operation
+  //     // Use last result (prev) and operand (current) from the last operation
+  //     current = parseFloat(this.lastOperand); // Reuse last operand if "=" is pressed again
+  //     prev = parseFloat(this.previousInput);  // Use last result if "=" is pressed again
+  //     this.operation = this.lastOperator;     // Restore last operator
+  //   } else if (this.operation === null) {
+  //     return; // Ensure "=" doesn't trigger an error without an operation
   //   }
 
   //   // Handle case where operation is set but no second number was entered
   //   if (this.currentInput === "" && this.operation !== null) {
-  //     current = prev; // Repeat the previous number
+  //     current = prev; // Repeat the previous number if there's no new input
   //   }
 
-  //   if (isNaN(prev) || isNaN(current) || this.operation === null) {
+  //   if (isNaN(prev) || isNaN(current)) {
   //     this.displayError("Error");
   //     return;
   //   }
@@ -182,16 +191,17 @@ class Calculator {
   //   }
 
   //   this.currentInput = result.toString();
-  //   this.previousInput = result.toString(); // Store result properly
+  //   this.previousInput = result.toString();
   //   this.isResultDisplayed = true;
 
-  //   // ✅ Store values for repeated "=" presses
-  //   this.lastOperand = current.toString(); // Keep the operand
-  //   this.lastOperator = this.operation; // Keep the operation
+  //   // Store values for repeated "=" presses
+  //   this.lastOperand = current.toString(); // Keep the current operand for repeated "="
+  //   this.lastOperator = this.operation; // Keep the operation for repeated "="
 
-  //   this.operation = null;
+  //   this.operation = null; // Reset operation after computation
   //   this.updateACButton();
   // }
+
 
   private compute(): void {
     // if (this.operation === null) return;
@@ -252,8 +262,6 @@ class Calculator {
     this.operation = null; // Reset operation after computation
     this.updateACButton();
   }
-
-
 
 
   private appendNumber(number: string): void {
