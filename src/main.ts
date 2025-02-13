@@ -143,6 +143,8 @@ class Calculator {
 
 
   private chooseOperation(op: string): void {
+    if (this.operation === op) return;
+
     if (this.operation === "÷" && op === "÷") {
       this.displayError("Error");
       return;
@@ -176,7 +178,6 @@ class Calculator {
     // Reset lastOperand when changing the operation
     this.lastOperator = op; // Set the new operator
   }
-
 
   // private compute(): void {
   //   // if (this.operation === null) return;
