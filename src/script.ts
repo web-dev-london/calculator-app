@@ -1,6 +1,5 @@
 import './style.css'
 
-
 class Calculator {
   private displayElement: HTMLInputElement;
   private currentInput: string = "";
@@ -31,69 +30,6 @@ class Calculator {
     this.updateACButton();
   }
 
-
-  private buttonClickHandler(button: HTMLButtonElement): void {
-    const value = button.innerText;
-    console.log("Clicked button:", value);
-    this.handleInput(value);
-  }
-
-  private handleInput(value: string): void {
-    // Ensure AC properly resets after an error
-    if (this.displayElement.value === "Error" || this.displayElement.value === "0") {
-      if (value === "AC") {
-        this.clear();
-        return;
-      }
-    }
-
-
-
-    if (!isNaN(Number(value))) {
-      if (this.isResultDisplayed) {
-        if (this.lastOperator !== null) {
-          // If "=" was pressed before, treat this number as a new operand in the last operation
-          this.currentInput = value;
-          this.previousInput = this.lastOperand ?? ""; // Restore the last initial operand
-          this.operation = this.lastOperator;    // Restore the last operator
-        } else {
-          // If no operator exists, start fresh
-          this.previousInput = "";
-          this.currentInput = value;
-        }
-        this.isResultDisplayed = false;
-      } else {
-        this.appendNumber(value);
-      }
-    }
-
-
-
-    if (value === ".") {
-      if (this.isResultDisplayed) {
-        this.currentInput = "";
-        this.isResultDisplayed = false;
-      }
-      this.appendNumber(value);
-    } else if (["+", "–", "×", "÷"].includes(value)) {
-      this.chooseOperation(value);
-    } else if (value === "=") {
-      this.compute();
-    } else if (value === "AC") {
-      this.clear();
-    } else if (value === "C") {
-      this.clearCurrentInput();
-    } else if (value === "+/-") {
-      this.toggleSign();
-    } else if (value === "%") {
-      this.percent();
-    }
-
-
-    this.updateDisplay();
-    this.updateACButton();
-  }
-
   private keyboardHandler(e: KeyboardEvent): void {
     const key = e.key;
     if (key === "Enter") {
@@ -104,6 +40,105 @@ class Calculator {
       this.handleInput(key);
     }
   }
+
+  private buttonClickHandler(button: HTMLButtonElement): void {
+    const value = button.innerText;
+    this.handleInput(value);
+  }
+
+  private handleInput(value: string): void {
+    console.log("Clicked button:", value);
+
+    // Reset after an error
+    if (this.displayElement.value === "Error") {
+      if (value === "AC") {
+        this.clear();
+        return;
+      }
+    }
+
+    if (!isNaN(Number(value)) || value === ".") {
+      if (this.isResultDisplayed) {
+        // If a result was just displayed, start a new expression
+        this.currentInput = value;
+        this.isResultDisplayed = false;
+      } else {
+        this.currentInput += value;
+      }
+    } else if (["+", "–", "×", "÷"].includes(value)) {
+      if (this.currentInput !== "") {
+        this.currentInput += value; // Append operator to the expression
+      }
+    } else if (value === "=") {
+      this.compute(); // Call the PEMDAS-aware compute function
+    } else if (value === "AC") {
+      this.clear();
+    } else if (value === "C") {
+      this.clearCurrentInput();
+    }
+
+    this.updateDisplay();
+  }
+
+
+  // private handleInput(value: string): void {
+  //   console.log("Clicked button:", value);
+  //   // Ensure AC properly resets after an error
+  //   if (this.displayElement.value === "Error" || this.displayElement.value === "0") {
+  //     if (value === "AC") {
+  //       this.clear();
+  //       return;
+  //     }
+  //   }
+
+
+
+  //   if (!isNaN(Number(value))) {
+  //     if (this.isResultDisplayed) {
+  //       if (this.lastOperator !== null) {
+  //         // If "=" was pressed before, treat this number as a new operand in the last operation
+  //         this.currentInput = value;
+  //         this.previousInput = this.lastOperand ?? ""; // Restore the last initial operand
+  //         this.operation = this.lastOperator;    // Restore the last operator
+  //       } else {
+  //         // If no operator exists, start fresh
+  //         this.previousInput = "";
+  //         this.currentInput = value;
+  //       }
+  //       this.isResultDisplayed = false;
+  //     } else {
+  //       this.appendNumber(value);
+  //     }
+  //   }
+
+
+
+  //   if (value === ".") {
+  //     if (this.isResultDisplayed) {
+  //       this.currentInput = "";
+  //       this.isResultDisplayed = false;
+  //     }
+  //     this.appendNumber(value);
+  //   } else if (["+", "–", "×", "÷"].includes(value)) {
+  //     this.chooseOperation(value);
+  //   } else if (value === "=") {
+  //     this.compute();
+  //   } else if (value === "AC") {
+  //     this.clear();
+  //   } else if (value === "C") {
+  //     this.clearCurrentInput();
+  //   } else if (value === "+/-") {
+  //     this.toggleSign();
+  //   } else if (value === "%") {
+  //     this.percent();
+  //   }
+
+
+  //   this.updateDisplay();
+  //   this.updateACButton();
+  // }
+
+
 
   // private chooseOperation(op: string): void {
   //   if (this.operation === "÷" && op === "÷") {
@@ -292,74 +327,145 @@ class Calculator {
   //   this.updateACButton();
   // }
 
-
-
   private compute(): void {
-    let prev = parseFloat(this.previousInput || "0");
-    let current = parseFloat(this.currentInput || "0");
+    try {
+      const expression = this.currentInput.replace(/–/g, "-").replace(/×/g, "*").replace(/÷/g, "/");
+      const tokens = this.tokenize(expression);
+      const rpn = this.convertToRPN(tokens);
+      const result = this.evaluateRPN(rpn);
 
-    // ✅ Store the **first operand** if not already stored
-    if (this.lastOperand === null && this.previousInput !== "") {
-      this.lastOperand = this.previousInput;
-    }
-
-    // ✅ If "=" is pressed repeatedly, continue using the first operand
-    if (this.isResultDisplayed && this.lastOperator !== null) {
-      prev = parseFloat(this.previousInput);  // Keep previous result
-      current = parseFloat(this.lastOperand ?? ""); // Always use **first** operand
-      this.operation = this.lastOperator;
-    }
-    // ✅ Otherwise, update last operator
-    else if (this.operation !== null) {
-      this.lastOperator = this.operation;
-    } else {
-      return; // If no operation, do nothing
-    }
-
-    // Handle case where no second number was entered
-    if (this.currentInput === "" && this.operation !== null) {
-      current = prev;
-    }
-
-    if (isNaN(prev) || isNaN(current)) {
+      this.currentInput = result.toString();
+      this.isResultDisplayed = true;
+    } catch (error) {
       this.displayError("Error");
-      return;
     }
 
-    if (this.operation === "÷" && current === 0) {
-      this.displayError("Error");
-      return;
-    }
-
-    let result: number;
-    switch (this.operation) {
-      case "+":
-        result = prev + current;
-        break;
-      case "–":
-        result = prev - current;
-        break;
-      case "×":
-        result = prev * current;
-        break;
-      case "÷":
-        result = prev / current;
-        break;
-      default:
-        return;
-    }
-
-    this.currentInput = result.toString();
-    this.previousInput = result.toString();
-    this.isResultDisplayed = true;
-
-    // ✅ **Fix: Ensure lastOperand does NOT change after entering a new number**
-    this.lastOperand = this.lastOperand ?? current.toString();
-    this.lastOperator = this.operation;
-
-    this.operation = null;
-    this.updateACButton();
+    this.updateDisplay();
   }
+
+  private tokenize(expression: string): string[] {
+    return expression.match(/(\d+(\.\d+)?)|[+\-*/()]/g) || [];
+  }
+
+
+  private convertToRPN(tokens: string[]): string[] {
+    const precedence: { [key: string]: number } = { "+": 1, "-": 1, "*": 2, "/": 2 };
+    const output: string[] = [];
+    const operators: string[] = [];
+
+    tokens.forEach(token => {
+      if (!isNaN(Number(token))) {
+        output.push(token);
+      } else if ("+-*/".includes(token)) {
+        while (operators.length > 0 && precedence[operators[operators.length - 1]] >= precedence[token]) {
+          output.push(operators.pop()!);
+        }
+        operators.push(token);
+      } else if (token === "(") {
+        operators.push(token);
+      } else if (token === ")") {
+        while (operators.length > 0 && operators[operators.length - 1] !== "(") {
+          output.push(operators.pop()!);
+        }
+        operators.pop(); // Remove "("
+      }
+    });
+
+    while (operators.length > 0) {
+      output.push(operators.pop()!);
+    }
+
+    return output;
+  }
+
+  private evaluateRPN(tokens: string[]): number {
+    const stack: number[] = [];
+
+    tokens.forEach(token => {
+      if (!isNaN(Number(token))) {
+        stack.push(Number(token));
+      } else {
+        const b = stack.pop()!;
+        const a = stack.pop()!;
+        switch (token) {
+          case "+": stack.push(a + b); break;
+          case "-": stack.push(a - b); break;
+          case "*": stack.push(a * b); break;
+          case "/": stack.push(a / b); break;
+        }
+      }
+    });
+
+    return stack[0];
+  }
+
+
+  // private compute(): void {
+  //   let prev = parseFloat(this.previousInput || "0");
+  //   let current = parseFloat(this.currentInput || "0");
+
+  //   // ✅ Store the **first operand** if not already stored
+  //   if (this.lastOperand === null && this.previousInput !== "") {
+  //     this.lastOperand = this.previousInput;
+  //   }
+
+  //   // ✅ If "=" is pressed repeatedly, continue using the first operand
+  //   if (this.isResultDisplayed && this.lastOperator !== null) {
+  //     prev = parseFloat(this.previousInput);  // Keep previous result
+  //     current = parseFloat(this.lastOperand ?? ""); // Always use **first** operand
+  //     this.operation = this.lastOperator;
+  //   }
+  //   // ✅ Otherwise, update last operator
+  //   else if (this.operation !== null) {
+  //     this.lastOperator = this.operation;
+  //   } else {
+  //     return; // If no operation, do nothing
+  //   }
+
+  //   // Handle case where no second number was entered
+  //   if (this.currentInput === "" && this.operation !== null) {
+  //     current = prev;
+  //   }
+
+  //   if (isNaN(prev) || isNaN(current)) {
+  //     this.displayError("Error");
+  //     return;
+  //   }
+
+  //   if (this.operation === "÷" && current === 0) {
+  //     this.displayError("Error");
+  //     return;
+  //   }
+
+  //   let result: number;
+  //   switch (this.operation) {
+  //     case "+":
+  //       result = prev + current;
+  //       break;
+  //     case "–":
+  //       result = prev - current;
+  //       break;
+  //     case "×":
+  //       result = prev * current;
+  //       break;
+  //     case "÷":
+  //       result = prev / current;
+  //       break;
+  //     default:
+  //       return;
+  //   }
+
+  //   this.currentInput = result.toString();
+  //   this.previousInput = result.toString();
+  //   this.isResultDisplayed = true;
+
+  //   // ✅ **Fix: Ensure lastOperand does NOT change after entering a new number**
+  //   this.lastOperand = this.lastOperand ?? current.toString();
+  //   this.lastOperator = this.operation;
+
+  //   this.operation = null;
+  //   this.updateACButton();
+  // }
 
 
 
@@ -509,189 +615,3 @@ class Clock {
 
 // Initialize the Clock instance
 new Clock('.hour', '.minute');
-
-
-
-// const hour = document.querySelector('.hour')
-// const minute = document.querySelector('.minute')
-
-// // Set up the time
-// const updateTime = () => {
-//   const currentTime = new Date()
-
-//   const currentHour = currentTime.getHours()
-//   const currentMinute = currentTime.getMinutes()
-
-//   let displayHour = currentHour % 12 || 12;
-
-//   if (hour) hour.textContent = displayHour.toString().padStart(2, "0");
-//   if (minute) minute.textContent = currentMinute.toString().padStart(2, "0");
-// }
-// setInterval(updateTime, 1000);
-// updateTime()
-
-
-// const formatNumber = (num: string) => {
-//   if (!num) return '0';
-//   let number = parseFloat(num);
-//   if (isNaN(number)) return '0';
-//   let [integerPart, decimalPart] = number.toFixed(8).split('.');
-//   integerPart = Number(integerPart).toLocaleString('en-US');
-//   decimalPart = decimalPart?.replace(/0+$/, '');
-//   return decimalPart ? `${integerPart}.${decimalPart}` : integerPart;
-// };
-
-
-
-
-
-
-/* 
-
-const display = document.querySelector('.display')
-const ac = document.querySelector('.ac')
-const pm = document.querySelector('.pm')
-const percent = document.querySelector('.percent')
-const division = document.querySelector('.division')
-const multiplication = document.querySelector('.multiplication')
-const addition = document.querySelector('.addition')
-const subtraction = document.querySelector('.subtraction')
-const decimal = document.querySelector('.decimal')
-const equal = document.querySelector('.equal')
-const numberZero = document.querySelector('.number-0')
-const numberOne = document.querySelector('.number-1')
-const numberTwo = document.querySelector('.number-2')
-const numberThree = document.querySelector('.number-3')
-const numberFour = document.querySelector('.number-4')
-const numberFive = document.querySelector('.number-5')
-const numberSix = document.querySelector('.number-6')
-const numberSeven = document.querySelector('.number-7')
-const numberEight = document.querySelector('.number-8')
-const numberNine = document.querySelector('.number-9')
-
-const numbers = [numberZero, numberOne, numberTwo, numberThree, numberFour, numberFive, numberSix, numberSeven, numberEight, numberNine]
-
-
-
-let currentInput = "";
-let previousInput = "";
-let operator: string | null = null;
-
-
-const updateDisplay = () => {
-  if (display instanceof HTMLInputElement) {
-    if (currentInput === "-0") {
-      display.value = "-0";
-    } else {
-      display.value = currentInput || '0';
-    }
-  }
-};
-
-
-const updateAcButton = () => {
-  if (ac) {
-    ac.textContent = currentInput ? "C" : "AC";
-  }
-}
-
-numbers.forEach((button, index) => {
-  button?.addEventListener("click", () => {
-    // Remove commas and decimal point for length checking purposes
-    const currentInputWithoutCommasAndDot = currentInput.replace(/[,\.]/g, "");
-
-    // Prevent adding more than 8 digits after the decimal point
-    if (currentInput.includes(".") && currentInput.split(".")[1]?.length >= 8) return;
-
-    // Limit the input to 9 digits (excluding commas and decimal point)
-    if (currentInputWithoutCommasAndDot.length < 9) {
-      currentInput += index.toString();
-      updateDisplay();
-      updateAcButton();
-    }
-  });
-});
-
-
-
-decimal && decimal.addEventListener("click", () => {
-  console.log("decimal button clicked");
-  if (!currentInput.includes(".")) {
-    currentInput += currentInput ? "." : "0.";
-    updateDisplay();
-    updateAcButton();
-  }
-});
-
-const resetCalculator = () => {
-  currentInput = "";
-  previousInput = "";
-  operator = null;
-  updateDisplay();
-  updateAcButton();
-}
-
-
-ac && ac.addEventListener("click", resetCalculator);
-
-
-pm && pm.addEventListener("click", () => {
-  if (currentInput === "0") {
-    currentInput = "-0";
-  } else if (currentInput) {
-    currentInput = (parseFloat(currentInput.replace(/,/g, "")) * -1).toString();
-  }
-  updateDisplay();
-});
-
-percent && percent.addEventListener("click", () => {
-  if (currentInput || previousInput) {
-    currentInput = (parseFloat((currentInput || previousInput).replace(/,/g, "")) / 100).toString();
-    previousInput = "";
-    updateDisplay();
-  }
-});
-
-
-const handleOperator = (op: string) => {
-  if (currentInput || previousInput) {
-    if (!previousInput) {
-      previousInput = currentInput.replace(/[,\.]/g, "");
-    }
-    currentInput = "";
-    operator = op;
-    // updateAcButton();
-  }
-};
-
-const roundResult = (num: number) => parseFloat(num.toFixed(8));
-
-
-division && division.addEventListener("click", () => handleOperator("/"));
-multiplication && multiplication.addEventListener("click", () => handleOperator("*"));
-subtraction && subtraction.addEventListener("click", () => handleOperator("-"));
-addition && addition.addEventListener("click", () => handleOperator("+"));
-
-equal && equal.addEventListener("click", () => {
-  if (previousInput && currentInput && operator) {
-    const prev = parseFloat(previousInput);
-    const curr = parseFloat(currentInput.replace(/,/g, ""));
-    switch (operator) {
-      case "+":
-        currentInput = roundResult(prev + curr).toString();
-        break;
-      case "-": currentInput = (prev - curr).toString(); break;
-      case "*": currentInput = (prev * curr).toString(); break;
-      case "/": currentInput = curr !== 0 ? (prev / curr).toString() : "Error";
-        if (currentInput === "Error") {
-          setTimeout(resetCalculator, 1500);
-        }
-        break;
-    }
-    previousInput = "";
-    operator = null;
-    updateDisplay();
-    updateAcButton();
-  }
-});
-*/
