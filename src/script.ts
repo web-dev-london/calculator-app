@@ -2,6 +2,7 @@ import './style.css'
 
 class Calculator {
   private displayElement: HTMLInputElement;
+  private displayValue: string = "";
   private currentInput: string = "";
   private previousInput: string = "";
   private lastOperand: string | null = null; // NEW: Stores last operand for repeated "="
@@ -61,23 +62,32 @@ class Calculator {
       if (this.isResultDisplayed) {
         // If a result was just displayed, start a new expression
         this.currentInput = value;
+        this.displayValue = value;
         this.isResultDisplayed = false;
       } else {
         this.currentInput += value;
+        this.displayValue += value;
       }
     } else if (["+", "–", "×", "÷"].includes(value)) {
-      if (this.currentInput !== "") {
-        this.currentInput += value; // Append operator to the expression
-      }
+      this.chooseOperation(value);
+      // if (this.currentInput !== "") {
+      //   this.currentInput += value; // Append operator to the expression
+      //   this.displayValue = ""; // Reset displayValue so only numbers show
+      // }
     } else if (value === "=") {
       this.compute(); // Call the PEMDAS-aware compute function
     } else if (value === "AC") {
       this.clear();
     } else if (value === "C") {
       this.clearCurrentInput();
+    } else if (value === "+/-") {
+      this.toggleSign();
+    } else if (value === "%") {
+      this.percent();
     }
 
     this.updateDisplay();
+    this.updateACButton();
   }
 
 
@@ -171,6 +181,13 @@ class Calculator {
       return;
     }
 
+    // Append operator to currentInput if it's not empty
+    if (this.currentInput !== "") {
+      this.currentInput += op;  // Append operator to the expression
+      this.displayValue = "";   // Reset displayValue so only numbers show
+      return;
+    }
+
     // If the user presses an operator after "=", continue with the last computed value
     if (this.isResultDisplayed) {
       this.isResultDisplayed = false; // Allow new input
@@ -189,7 +206,7 @@ class Calculator {
     // Compute the result if there was any previous operation
     if (this.previousInput !== "") {
       this.compute();
-    }
+    } // fixme: Compute the result if there was any previous operation
 
     // Set the new operation
     this.operation = op;
@@ -335,6 +352,7 @@ class Calculator {
       const result = this.evaluateRPN(rpn);
 
       this.currentInput = result.toString();
+      this.displayValue = result.toString(); // Ensure only the result is shown
       this.isResultDisplayed = true;
     } catch (error) {
       this.displayError("Error");
@@ -377,6 +395,7 @@ class Calculator {
 
     return output;
   }
+
 
   private evaluateRPN(tokens: string[]): number {
     const stack: number[] = [];
@@ -520,6 +539,13 @@ class Calculator {
     this.updateACButton();
   }
 
+  private updateDisplay(): void {
+    if (this.displayElement.value === "Error") return;
+    if (this.displayValue !== "") {
+      this.displayElement.value = this.displayValue;
+    }
+  }
+
 
 
   private updateACButton(): void {
@@ -534,7 +560,12 @@ class Calculator {
     }
   }
 
-
+  // Public method to reset the AC button after page reload
+  public resetACButton(): void {
+    if (this.acButton) {
+      this.acButton.innerText = "AC";
+    }
+  }
 
   private toggleSign(): void {
     if (this.currentInput === "0" || this.displayElement.value === "0") {
@@ -550,12 +581,6 @@ class Calculator {
     }
   }
 
-  private updateDisplay(): void {
-    if (this.displayElement.value === "Error") return;
-    this.displayElement.value = this.currentInput || this.previousInput || "0";
-  }
-
-
   private displayError(message: string): void {
     this.displayElement.value = message;
     this.currentInput = "";
@@ -565,13 +590,6 @@ class Calculator {
     this.lastOperand = null;
     this.lastOperator = null;
 
-    if (this.acButton) {
-      this.acButton.innerText = "AC";
-    }
-  }
-
-  // Public method to reset the AC button after page reload
-  public resetACButton(): void {
     if (this.acButton) {
       this.acButton.innerText = "AC";
     }

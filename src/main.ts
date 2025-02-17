@@ -34,7 +34,6 @@ class Calculator {
 
   private buttonClickHandler(button: HTMLButtonElement): void {
     const value = button.innerText;
-    console.log("Clicked button:", value);
     this.handleInput(value);
   }
 
@@ -135,6 +134,7 @@ class Calculator {
       this.displayError("Error");
       return;
     }
+
 
     // If the user presses an operator after "=", continue with the last computed value
     if (this.isResultDisplayed) {
