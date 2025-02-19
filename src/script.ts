@@ -66,9 +66,17 @@ class Calculator {
         this.isResultDisplayed = false;
       } else {
         this.currentInput += value;
-        this.displayValue = value;
+        this.displayValue += value;
       }
-    } else if (["+", "–", "×", "÷"].includes(value)) {
+    }
+    if (value === ".") {
+      if (this.isResultDisplayed) {
+        this.currentInput = "";
+        this.isResultDisplayed = false;
+      }
+      this.appendNumber(value);
+    }
+    else if (["+", "–", "×", "÷"].includes(value)) {
       this.chooseOperation(value);
       // if (this.currentInput !== "") {
       //   this.currentInput += value; // Append operator to the expression
@@ -259,6 +267,19 @@ class Calculator {
   }
 
 
+  private updateACButton(): void {
+    if (this.acButton) {
+      if (this.currentInput !== "" && this.currentInput !== "0") {
+        this.acButton.innerText = "C"; // Keep "C" if there's an input to clear
+      }
+      else if (["+", "–", "×", "÷", "+/-", "%"].includes(this.currentInput)) {
+        this.acButton.innerText = "C";
+      }
+      else {
+        this.acButton.innerText = "AC"; // Reset to "AC" only when fully cleared
+      }
+    }
+  }
 
 
   private updateDisplay(): void {
@@ -270,30 +291,6 @@ class Calculator {
   }
 
 
-  private updateACButton(): void {
-    if (this.acButton) {
-      if (this.currentInput === "0" && !this.previousInput && !this.operation) {
-        this.acButton.innerText = "AC";
-      } else {
-        this.acButton.innerText = "C";
-      }
-    }
-  }
-
-
-
-  // private updateACButton(): void {
-  //   if (this.acButton) {
-  //     // AC should remain if display is "Error" or input is "0"
-  //     if (this.displayElement.value === "Error" || this.currentInput === "0") {
-  //       this.acButton.innerText = "AC"; // Reset to "AC" on error or initial state
-  //     } // Ensure pressing "+/-" does not change AC to C
-  //     else if (this.operation === null && this.currentInput !== "-0" && this.currentInput !== "0") {
-  //       this.acButton.innerText = "C";
-  //     }
-  //   }
-  // }
-
   // Public method to reset the AC button after page reload
   public resetACButton(): void {
     if (this.acButton) {
@@ -302,12 +299,15 @@ class Calculator {
   }
 
   private toggleSign(): void {
+    console.log("Before toggle sign:", this.currentInput);  // Log before toggling
     if (this.currentInput === "0" || this.displayElement.value === "0") {
       this.currentInput = "-0";
     } else if (this.currentInput) {
       this.currentInput = (parseFloat(this.currentInput) * -1).toString();
     }
+    console.log("After toggle sign:", this.currentInput);  // Log after toggling
   }
+
 
   private percent(): void {
     if (this.currentInput) {
@@ -316,6 +316,7 @@ class Calculator {
   }
 
   private displayError(message: string): void {
+    console.log("Displaying error:", message);
     this.displayElement.value = message;
     this.currentInput = "";
     this.previousInput = "";
@@ -325,6 +326,7 @@ class Calculator {
       this.acButton.innerText = "AC";
     }
   }
+
 }
 
 
