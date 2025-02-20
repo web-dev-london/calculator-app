@@ -28,6 +28,8 @@ class Calculator {
 
   private handleInput(value: string) {
     console.log('Handling input:', value);
+    console.log('Current input before handling:', this.currentInput);
+    console.log('Display value before handling:', this.displayValue);
 
     // Reset after an error
     if (this.displayElement.value === "Error") {
@@ -74,31 +76,55 @@ class Calculator {
     this.handleUpdateACToCButton();
   }
 
+  private handleChooseOperation(operator: string) {
+    // 1. Append operator to currentInput if it's not empty
+    if (this.currentInput !== "") {
+      // If there's already an operator, replace it
+      if (this.operation !== null) {
+        this.currentInput = this.currentInput.slice(0, -1); // Remove the last operator
+        this.displayValue = this.displayValue.slice(0, -1); // Update display to reflect the removed operator
+      }
+
+      this.currentInput += operator;  // Add the new operator
+      this.displayValue += operator;  // Update the display
+      this.operation = operator;  // Set the current operation
+    } else if (this.currentInput === "" && this.previousInput !== "") {
+      // 3. If the user enters an operator without a number, do nothing
+      return;
+    }
+
+    // 4. Compute the result if there was any previous operation
+    if (this.previousInput !== "" && this.operation !== null) {
+      // Perform the operation and calculate the result
+      this.handleCompute();
+    }
+
+    // 5. Set the new operation
+    this.previousInput = this.currentInput; // Store the current input for future operations
+  }
+
   private handleCompute(): void {
     try {
       let expression = this.currentInput.replace(/–/g, "-").replace(/×/g, "*").replace(/÷/g, "/");
 
+      // // Ensure last character is not an operator before evaluating
+      // if (["+", "-", "*", "/"].includes(expression.slice(-1))) {
+      //   expression = expression.slice(0, -1);  // Remove the trailing operator
+      // }
+
       let result: number;
 
-      // Handle deferred percentage calculation
-      if (this.currentInput.includes("%")) {
-        // Extract the percentage and apply it
-        const valueWithoutPercentage = parseFloat(this.currentInput.replace("%", ""));
-        if (this.operation) {
-          // Apply the percentage to the result of the operation
-          result = valueWithoutPercentage / 100;
-        } else {
-          result = valueWithoutPercentage / 100; // If no operation, just apply percentage
-        }
-      } else {
-        const tokens = this.tokenize(expression);
-        const rpn = this.convertToRPN(tokens);
-        result = this.evaluateRPN(rpn);
-      }
+      const tokens = this.tokenize(expression);
+      const rpn = this.convertToRPN(tokens);
+      result = this.evaluateRPN(rpn);
+
 
       this.currentInput = result.toString();
       this.displayValue = result.toString(); // Ensure only the result is shown
       this.isResultDisplayed = true;
+      console.log('Result:', result);
+      console.log('Current input after computing:', this.currentInput);
+      console.log('Display value after computing:', this.displayValue);
     } catch (error) {
       this.handleDisplayError("Error");
     }
@@ -161,41 +187,6 @@ class Calculator {
     });
 
     return stack[0];
-  }
-
-  private handleChooseOperation(operator: string) {
-    if (this.operation === operator) return;
-    if (this.operation === "÷" && operator === "÷") {
-      this.handleDisplayError("Error");
-      return;
-    }
-    // If the user enters an operator without a number, do nothing
-    if (this.currentInput === "" && this.previousInput === "") return;
-    // If the user presses multiple operators in a row, replace the last one
-    if (this.previousInput !== "" && this.currentInput === "") {
-      this.operation = operator;  // Replace the last operator
-      return;
-    }
-    // Append operator to currentInput if it's not empty
-    if (this.currentInput !== "") {
-      this.currentInput += operator;  // Append operator to the expression
-      this.displayValue = "";   // Reset displayValue so only numbers show
-      return;
-    }
-    // If the user presses an operator after "=", continue with the last computed value
-    if (this.isResultDisplayed) {
-      this.isResultDisplayed = false; // Allow new input
-      this.previousInput = this.currentInput; // Store last result
-    }
-    // Compute the result if there was any previous operation
-    if (this.previousInput !== "" && this.currentInput !== "") {
-      this.handleCompute();
-    }
-
-    // Set the new operation
-    this.operation = operator;
-    this.previousInput = this.currentInput;
-    this.currentInput = "";
   }
 
   private handlePercentage() {
@@ -267,7 +258,7 @@ class Calculator {
   private handleUpdateDisplay() {
     if (this.displayElement.value === "Error") return;
     if (this.displayValue !== "") {
-      this.displayElement.value = this.displayValue || this.previousInput || "0";
+      this.displayElement.value = this.displayValue || this.previousInput;
     }
   }
 
