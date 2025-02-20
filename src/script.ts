@@ -69,13 +69,6 @@ class Calculator {
         this.displayValue += value;
       }
     }
-    if (value === ".") {
-      if (this.isResultDisplayed) {
-        this.currentInput = "";
-        this.isResultDisplayed = false;
-      }
-      this.appendNumber(value);
-    }
     else if (["+", "–", "×", "÷"].includes(value)) {
       this.chooseOperation(value);
       // if (this.currentInput !== "") {
@@ -91,7 +84,7 @@ class Calculator {
     } else if (value === "+/-") {
       this.toggleSign();
     } else if (value === "%") {
-      this.percent();
+      this.applyPercentage();
     }
 
     this.updateDisplay();
@@ -131,7 +124,7 @@ class Calculator {
     }
 
     // Compute the result if there was any previous operation
-    if (this.previousInput !== "") {
+    if (this.previousInput !== "" && this.currentInput !== "") {
       this.compute();
     } // fixme: Compute the result if there was any previous operation
 
@@ -143,12 +136,25 @@ class Calculator {
 
   private compute(): void {
     try {
-      const expression = this.currentInput.replace(/–/g, "-").replace(/×/g, "*").replace(/÷/g, "/");
-      const tokens = this.tokenize(expression);
-      const rpn = this.convertToRPN(tokens);
-      const result = this.evaluateRPN(rpn);
+      let expression = this.currentInput.replace(/–/g, "-").replace(/×/g, "*").replace(/÷/g, "/");
 
+      let result: number;
 
+      // Handle deferred percentage calculation
+      if (this.currentInput.includes("%")) {
+        // Extract the percentage and apply it
+        const valueWithoutPercentage = parseFloat(this.currentInput.replace("%", ""));
+        if (this.operation) {
+          // Apply the percentage to the result of the operation
+          result = valueWithoutPercentage / 100;
+        } else {
+          result = valueWithoutPercentage / 100; // If no operation, just apply percentage
+        }
+      } else {
+        const tokens = this.tokenize(expression);
+        const rpn = this.convertToRPN(tokens);
+        result = this.evaluateRPN(rpn);
+      }
 
       this.currentInput = result.toString();
       this.displayValue = result.toString(); // Ensure only the result is shown
@@ -161,8 +167,10 @@ class Calculator {
   }
 
   private tokenize(expression: string): string[] {
-    return expression.match(/(\d+(\.\d+)?)|[+\-*/()]/g) || [];
+    // Only match numbers, decimals, and operators
+    return expression.match(/(\d+(\.\d+)?)|[+\-*/]/g) || [];
   }
+
 
 
   private convertToRPN(tokens: string[]): string[] {
@@ -172,22 +180,17 @@ class Calculator {
 
     tokens.forEach(token => {
       if (!isNaN(Number(token))) {
-        output.push(token);
+        output.push(token);  // Add numbers directly to the output
       } else if ("+-*/".includes(token)) {
+        // Handle operators based on precedence
         while (operators.length > 0 && precedence[operators[operators.length - 1]] >= precedence[token]) {
           output.push(operators.pop()!);
         }
-        operators.push(token);
-      } else if (token === "(") {
-        operators.push(token);
-      } else if (token === ")") {
-        while (operators.length > 0 && operators[operators.length - 1] !== "(") {
-          output.push(operators.pop()!);
-        }
-        operators.pop(); // Remove "("
+        operators.push(token);  // Push the current operator onto the stack
       }
     });
 
+    // Pop any remaining operators from the stack
     while (operators.length > 0) {
       output.push(operators.pop()!);
     }
@@ -196,13 +199,20 @@ class Calculator {
   }
 
 
+
   private evaluateRPN(tokens: string[]): number {
     const stack: number[] = [];
 
     tokens.forEach(token => {
       if (!isNaN(Number(token))) {
         stack.push(Number(token));
-      } else {
+      } else if (token === "%") {
+        stack.push(stack.pop()! / 100);
+        // const a = stack.pop()!;
+        // const b = stack.pop() || 1;
+        // stack.push(b * (a / 100)); // Perform the percentage operation
+      }
+      else {
         const b = stack.pop()!;
         const a = stack.pop()!;
         switch (token) {
@@ -218,25 +228,25 @@ class Calculator {
   }
 
 
-  private appendNumber(number: string): void {
-    // If the current input is "-0", replace it with "-number" when the user presses a number
-    if (this.currentInput === "-0" && number !== ".") {
-      this.currentInput = `-${number}`;
-      return;
-    }
+  // private appendNumber(number: string): void {
+  //   // If the current input is "-0", replace it with "-number" when the user presses a number
+  //   if (this.currentInput === "-0" && number !== ".") {
+  //     this.currentInput = `-${number}`;
+  //     return;
+  //   }
 
-    if (number === "." && this.currentInput.includes(".")) return;
+  //   if (number === "." && this.currentInput.includes(".")) return;
 
-    if (number === "." && this.currentInput === "") {
-      this.currentInput = "0.";
-      return;
-    }
-    if (this.currentInput === "0" && number !== ".") {
-      this.currentInput = number;
-      return;
-    }
-    this.currentInput += number;
-  }
+  //   if (number === "." && this.currentInput === "") {
+  //     this.currentInput = "0.";
+  //     return;
+  //   }
+  //   if (this.currentInput === "0" && number !== ".") {
+  //     this.currentInput = number;
+  //     return;
+  //   }
+  //   this.currentInput += number;
+  // }
 
   private clear(): void {
     this.currentInput = "0";
@@ -309,11 +319,25 @@ class Calculator {
   }
 
 
-  private percent(): void {
-    if (this.currentInput) {
+  private applyPercentage(): void {
+    if (!this.currentInput || isNaN(parseFloat(this.currentInput))) return;
+
+    // Case 1: If no operation is currently active, apply percentage immediately
+    if (this.operation === null && this.previousInput === "") {
       this.currentInput = (parseFloat(this.currentInput) / 100).toString();
+      this.displayValue = this.currentInput;  // Update display with the immediate result
     }
+    // Case 2: If there's an ongoing operation, defer the percentage application
+    else if (this.operation !== null) {
+      this.currentInput += "%";  // Mark it for deferred calculation
+    }
+
+    this.updateDisplay();  // Update the display with the current input
   }
+
+
+
+
 
   private displayError(message: string): void {
     console.log("Displaying error:", message);

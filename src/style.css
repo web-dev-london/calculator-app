@@ -304,3 +304,9 @@ button:focus {
     border-radius: 2px;
     background-color: white;
 }
+
+.recent-inputs {
+    color: #a5a5a5;
+    font-family: sans-serif;
+    font-size: 1.8rem;
+}
