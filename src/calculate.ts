@@ -27,9 +27,13 @@ class Calculator {
   }
 
   private handleInput(value: string) {
-    console.log('Handling input:', value);
-    console.log('Current input before handling:', this.currentInput);
-    console.log('Display value before handling:', this.displayValue);
+    console.log("Handling input:", value);
+    console.log("Current state before handling:", {
+      currentInput: this.currentInput,
+      previousInput: this.previousInput,
+      displayValue: this.displayValue,
+      operation: this.operation,
+    });
 
     // Reset after an error
     if (this.displayElement.value === "Error") {
@@ -77,6 +81,7 @@ class Calculator {
   }
 
   private handleChooseOperation(operator: string) {
+    console.log('Handling choose operation:', operator);
     if (this.operation === operator) return;
     if (this.operation === "÷" && operator === "÷") {
       this.handleDisplayError("Error");
@@ -116,15 +121,20 @@ class Calculator {
     this.currentInput = "";
   }
 
-  private handleCompute(): void {
+  private handleCompute() {
     try {
+      console.log('Computing result...');
       let expression = this.currentInput.replace(/–/g, "-").replace(/×/g, "*").replace(/÷/g, "/");
-
-      let result: number;
+      console.log('Expression after replacing operators:', expression);
 
       const tokens = this.tokenize(expression);
+      console.log('Tokens:', tokens);
+      // const newSetOfTokens = [...new Set(tokens)];
       const rpn = this.convertToRPN(tokens);
-      result = this.evaluateRPN(rpn);
+      // console.log('New set of tokens:', newSetOfTokens);
+      console.log('Reversed Polish Notation (RPN):', rpn);
+      const result = this.evaluateRPN(rpn);
+      console.log('Computed result:', result);
 
 
       this.currentInput = result.toString();
@@ -142,7 +152,26 @@ class Calculator {
 
   private tokenize(expression: string): string[] {
     // Only match numbers, decimals, and operators
-    return expression.match(/(\d+(\.\d+)?)|[+\-*/]/g) || [];
+    const tokens = expression.match(/(\d+(\.\d+)?)|[+\-*/]/g) || [];
+    const result: string[] = [];
+
+    tokens.forEach(token => {
+      if ("+-*/".includes(token)) {
+        // If the result is not empty and the last token is an operator
+        if (result.length > 0 && "+-*/".includes(result[result.length - 1])) {
+          // If two operators are encountered, replace the last one with the current one
+          result[result.length - 1] = token;
+        } else {
+          // Otherwise, just add the operator to the result
+          result.push(token);
+        }
+      } else {
+        // If it's a number, add it to the result
+        result.push(token);
+      }
+    });
+
+    return result;
   }
 
   private convertToRPN(tokens: string[]): string[] {
@@ -171,16 +200,12 @@ class Calculator {
   }
 
   private evaluateRPN(tokens: string[]): number {
+    console.log('Evaluating RPN...', tokens);
     const stack: number[] = [];
 
     tokens.forEach(token => {
       if (!isNaN(Number(token))) {
         stack.push(Number(token));
-      } else if (token === "%") {
-        stack.push(stack.pop()! / 100);
-        // const a = stack.pop()!;
-        // const b = stack.pop() || 1;
-        // stack.push(b * (a / 100)); // Perform the percentage operation
       }
       else {
         const b = stack.pop()!;
@@ -264,6 +289,7 @@ class Calculator {
   }
 
   private handleUpdateDisplay() {
+    console.log('Display updated to:', this.displayValue);
     if (this.displayElement.value === "Error") return;
     if (this.displayValue !== "") {
       this.displayElement.value = this.displayValue || this.previousInput;
