@@ -32,7 +32,7 @@ class Calculator {
     // Reset after an error
     if (this.displayElement.value === "Error") {
       if (value === "AC") {
-        this.clear();
+        this.handleClear();
         return;
       }
     }
@@ -57,20 +57,161 @@ class Calculator {
         this.displayValue += value;
       }
     } else if (value === 'C') {
-      this.clearCurrentInput();
+      this.handleClearCurrentInput();
     } else if (value === "AC") {
-      this.clear();
-    } else if (value === "=") {
-      this.calculateResult();
+      this.handleClear();
     } else if (value === "+/-") {
-      this.toggleSign();
+      this.handleToggleSign();
+    } else if (value === '%') {
+      this.handlePercentage();
+    } else if (["+", "–", "×", "÷"].includes(value)) {
+      this.handleChooseOperation(value);
+    } else if (value === "=") {
+      this.handleCompute();
     }
 
-    this.updateDisplay();
-    this.updateACToCButton();
+    this.handleUpdateDisplay();
+    this.handleUpdateACToCButton();
   }
 
-  private toggleSign() {
+  private handleCompute(): void {
+    try {
+      let expression = this.currentInput.replace(/–/g, "-").replace(/×/g, "*").replace(/÷/g, "/");
+
+      let result: number;
+
+      // Handle deferred percentage calculation
+      if (this.currentInput.includes("%")) {
+        // Extract the percentage and apply it
+        const valueWithoutPercentage = parseFloat(this.currentInput.replace("%", ""));
+        if (this.operation) {
+          // Apply the percentage to the result of the operation
+          result = valueWithoutPercentage / 100;
+        } else {
+          result = valueWithoutPercentage / 100; // If no operation, just apply percentage
+        }
+      } else {
+        const tokens = this.tokenize(expression);
+        const rpn = this.convertToRPN(tokens);
+        result = this.evaluateRPN(rpn);
+      }
+
+      this.currentInput = result.toString();
+      this.displayValue = result.toString(); // Ensure only the result is shown
+      this.isResultDisplayed = true;
+    } catch (error) {
+      this.handleDisplayError("Error");
+    }
+
+    this.handleUpdateDisplay();
+  }
+
+  private tokenize(expression: string): string[] {
+    // Only match numbers, decimals, and operators
+    return expression.match(/(\d+(\.\d+)?)|[+\-*/]/g) || [];
+  }
+
+  private convertToRPN(tokens: string[]): string[] {
+    const precedence: { [key: string]: number } = { "+": 1, "-": 1, "*": 2, "/": 2 };
+    const output: string[] = [];
+    const operators: string[] = [];
+
+    tokens.forEach(token => {
+      if (!isNaN(Number(token))) {
+        output.push(token);  // Add numbers directly to the output
+      } else if ("+-*/".includes(token)) {
+        // Handle operators based on precedence
+        while (operators.length > 0 && precedence[operators[operators.length - 1]] >= precedence[token]) {
+          output.push(operators.pop()!);
+        }
+        operators.push(token);  // Push the current operator onto the stack
+      }
+    });
+
+    // Pop any remaining operators from the stack
+    while (operators.length > 0) {
+      output.push(operators.pop()!);
+    }
+
+    return output;
+  }
+
+  private evaluateRPN(tokens: string[]): number {
+    const stack: number[] = [];
+
+    tokens.forEach(token => {
+      if (!isNaN(Number(token))) {
+        stack.push(Number(token));
+      } else if (token === "%") {
+        stack.push(stack.pop()! / 100);
+        // const a = stack.pop()!;
+        // const b = stack.pop() || 1;
+        // stack.push(b * (a / 100)); // Perform the percentage operation
+      }
+      else {
+        const b = stack.pop()!;
+        const a = stack.pop()!;
+        switch (token) {
+          case "+": stack.push(a + b); break;
+          case "-": stack.push(a - b); break;
+          case "*": stack.push(a * b); break;
+          case "/": stack.push(a / b); break;
+        }
+      }
+    });
+
+    return stack[0];
+  }
+
+  private handleChooseOperation(operator: string) {
+    if (this.operation === operator) return;
+    if (this.operation === "÷" && operator === "÷") {
+      this.handleDisplayError("Error");
+      return;
+    }
+    // If the user enters an operator without a number, do nothing
+    if (this.currentInput === "" && this.previousInput === "") return;
+    // If the user presses multiple operators in a row, replace the last one
+    if (this.previousInput !== "" && this.currentInput === "") {
+      this.operation = operator;  // Replace the last operator
+      return;
+    }
+    // Append operator to currentInput if it's not empty
+    if (this.currentInput !== "") {
+      this.currentInput += operator;  // Append operator to the expression
+      this.displayValue = "";   // Reset displayValue so only numbers show
+      return;
+    }
+    // If the user presses an operator after "=", continue with the last computed value
+    if (this.isResultDisplayed) {
+      this.isResultDisplayed = false; // Allow new input
+      this.previousInput = this.currentInput; // Store last result
+    }
+    // Compute the result if there was any previous operation
+    if (this.previousInput !== "" && this.currentInput !== "") {
+      this.handleCompute();
+    }
+
+    // Set the new operation
+    this.operation = operator;
+    this.previousInput = this.currentInput;
+    this.currentInput = "";
+  }
+
+  private handlePercentage() {
+    if (!this.currentInput || isNaN(parseFloat(this.currentInput))) return;
+    // Case 1: If no operation is currently active, apply percentage immediately
+    if (this.operation === null && this.previousInput === "") {
+      this.currentInput = (parseFloat(this.currentInput) / 100).toString();
+      this.displayValue = this.currentInput;  // Update display with the immediate result
+    }
+    // If there is ongoing operations, defer the percentage application
+    else if (this.operation !== null) {
+      this.currentInput += "%";  // Mark it for deferred calculation
+    }// fixme: apply percentage
+  }
+
+  private handleToggleSign() {
     // If current input is 0. add a negative sign
     if (this.currentInput === '0') {
       this.currentInput = '-0';
@@ -90,7 +231,7 @@ class Calculator {
     }
   }
 
-  private clearCurrentInput() {
+  private handleClearCurrentInput() {
     // Clear only the current input when result is displayed
     if (this.isResultDisplayed) {
       this.currentInput = '';
@@ -100,11 +241,11 @@ class Calculator {
       this.currentInput = '';
     }
     this.displayValue = '0';
-    this.updateDisplay();
-    this.updateACToCButton();
+    this.handleUpdateDisplay();
+    this.handleUpdateACToCButton();
   }
 
-  private clear() {
+  private handleClear() {
     this.currentInput = "0";
     this.previousInput = "";
     this.operation = null;
@@ -113,7 +254,7 @@ class Calculator {
     this.displayElement.value = "0"; // Ensure the display shows 0 after clearing
   }
 
-  private updateACToCButton() {
+  private handleUpdateACToCButton() {
     if (this.acButton) {
       if (this.currentInput !== '' && this.currentInput !== '0' && this.currentInput !== '-0') {
         this.acButton.innerText = 'C';
@@ -123,10 +264,23 @@ class Calculator {
     }
   }
 
-  private updateDisplay() {
+  private handleUpdateDisplay() {
     if (this.displayElement.value === "Error") return;
     if (this.displayValue !== "") {
       this.displayElement.value = this.displayValue || this.previousInput || "0";
+    }
+  }
+
+  private handleDisplayError(message: string): void {
+    this.displayElement.value = message;
+    this.displayValue = message;
+    this.currentInput = "";
+    this.previousInput = "";
+    this.operation = null;
+    this.isResultDisplayed = true;
+
+    if (this.acButton) {
+      this.acButton.innerText = "AC";
     }
   }
 }

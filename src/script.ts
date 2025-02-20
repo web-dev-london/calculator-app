@@ -101,6 +101,15 @@ class Calculator {
       return;
     }
 
+    // If the user enters an operator without a number, do nothing
+    if (this.currentInput === "" && this.previousInput === "") return;
+
+    // If the user presses multiple operators in a row, replace the last one
+    if (this.previousInput !== "" && this.currentInput === "") {
+      this.operation = op;  // Replace the last operator
+      return;
+    }
+
     // Append operator to currentInput if it's not empty
     if (this.currentInput !== "") {
       this.currentInput += op;  // Append operator to the expression
@@ -114,14 +123,6 @@ class Calculator {
       this.previousInput = this.currentInput; // Store last result
     }
 
-    // If the user enters an operator without a number, do nothing
-    if (this.currentInput === "" && this.previousInput === "") return;
-
-    // If the user presses multiple operators in a row, replace the last one
-    if (this.previousInput !== "" && this.currentInput === "") {
-      this.operation = op;  // Replace the last operator
-      return;
-    }
 
     // Compute the result if there was any previous operation
     if (this.previousInput !== "" && this.currentInput !== "") {
