@@ -13,12 +13,16 @@ class Calculator {
     this.displayElement = document.querySelector(displaySelector) as HTMLInputElement;
     this.acButton = document.querySelector(".ac") as HTMLButtonElement;
     this.initialize();
+    this.handleResetACButton();
   }
 
   private initialize() {
     Array.from(document.querySelectorAll("button")).forEach(button => {
       button.addEventListener("click", () => this.buttonClickHandler(button));
     })
+    this.displayElement.value = "0";
+
+    this.handleUpdateACToCButton();
   }
 
   private buttonClickHandler(button: HTMLButtonElement) {
@@ -145,7 +149,6 @@ class Calculator {
       this.currentInput = result.toString();
       this.displayValue = result.toString(); // Ensure only the result is shown
       this.isResultDisplayed = true;
-      console.log('Result:', result);
       console.log('Current input after computing:', this.currentInput);
       console.log('Display value after computing:', this.displayValue);
     } catch (error) {
@@ -162,7 +165,17 @@ class Calculator {
     const result: string[] = [];
 
 
-    tokens.forEach(token => {
+    tokens.forEach((token, index) => {
+      console.log('Token and index:', {
+        token: token,
+        index: index
+      });
+
+      // Handle negative numbers: If a token starts with '-' and is followed by a number, treat it as a negative number
+      if (token === '-' && (tokens[index + 1] && !isNaN(Number(tokens[index + 1])))) {
+        result.push(token + tokens[index + 1]);
+        tokens[index + 1] = ''; // Skip the next token (which is part of the negative number)
+      }
       if ("+-*/".includes(token)) {
         // Check if the operator is division and the next token is zero
         if (token === '/' && result[result.length - 1] === '0') {
@@ -312,7 +325,7 @@ class Calculator {
     }
   }
 
-  private handleDisplayError(message: string): void {
+  private handleDisplayError(message: string) {
     this.displayElement.value = message;
     this.displayValue = message;
     this.currentInput = "";
@@ -324,10 +337,19 @@ class Calculator {
       this.acButton.innerText = "AC";
     }
   }
+  // Public method to reset the AC button after page reload
+  public handleResetACButton() {
+    if (this.acButton) {
+      this.acButton.innerText = "AC";
+    }
+  }
 }
 
 
-document.addEventListener("DOMContentLoaded", () => new Calculator(".display"));
+document.addEventListener("DOMContentLoaded", () => {
+  const calculator = new Calculator(".display");
+  calculator.handleResetACButton();
+});
 
 
 class Clock {
