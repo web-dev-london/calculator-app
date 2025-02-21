@@ -5,7 +5,7 @@ class Calculator {
   private displayValue = "";
   private currentInput = "";
   private previousInput = "";
-  private operation: string | null = null;
+  private operation: string | null = null;// fixme: Remove if not needed
   private acButton: HTMLButtonElement | null = null;
   private isResultDisplayed = false;
 
@@ -55,15 +55,6 @@ class Calculator {
         this.displayValue += value;
       }
     }
-    //  else if (value === ".") {
-    //   if (this.currentInput === '') {
-    //     this.currentInput = '0.';
-    //     this.displayValue = '0.';
-    //   } else if (!this.currentInput.includes('.')) {
-    //     this.currentInput += value;
-    //     this.displayValue += value;
-    //   }
-    // }
 
     else if (value === ".") {
       // Handling the decimal point (.)
@@ -104,20 +95,10 @@ class Calculator {
 
   private handleChooseOperation(operator: string) {
     console.log('Handling choose operation:', operator);
-    if (this.operation === operator) return;
-    if (this.operation === "÷" && operator === "÷") {
-      this.handleDisplayError("Error");
-      return;
-    }
 
-    // If the user enters an operator without a number, do nothing
-    if (this.currentInput === "" && this.previousInput === "") return;
+    // // If the user enters an operator without a number, do nothing
+    // if (this.currentInput === "" && this.previousInput === "") return;
 
-    // If the user presses multiple operators in a row, replace the last one
-    if (this.previousInput !== "" && this.currentInput === "") {
-      this.operation = operator;  // Replace the last operator
-      return;
-    }
 
     // Append operator to currentInput if it's not empty
     if (this.currentInput !== "") {
@@ -151,9 +132,11 @@ class Calculator {
 
       const tokens = this.tokenize(expression);
       console.log('Tokens:', tokens);
-      // const newSetOfTokens = [...new Set(tokens)];
+      if (tokens.length === 0) {
+        console.log('No tokens found', { tokens });
+        return;
+      }
       const rpn = this.convertToRPN(tokens);
-      // console.log('New set of tokens:', newSetOfTokens);
       console.log('Reversed Polish Notation (RPN):', rpn);
       const result = this.evaluateRPN(rpn);
       console.log('Computed result:', result);
@@ -175,10 +158,21 @@ class Calculator {
   private tokenize(expression: string): string[] {
     // Only match numbers, decimals, and operators
     const tokens = expression.match(/(\d+(\.\d+)?)|[+\-*/]/g) || [];
+
     const result: string[] = [];
+
 
     tokens.forEach(token => {
       if ("+-*/".includes(token)) {
+        // Check if the operator is division and the next token is zero
+        if (token === '/' && result[result.length - 1] === '0') {
+          this.handleDisplayError("Error");
+          return;
+        }
+        // Prevent adding operators if the previous token is zero and the current operator is +, -, or *
+        if (result[result.length - 1] === '0' && (token === '*' || token === '+' || token === '-')) {
+          return;
+        }
         // If the result is not empty and the last token is an operator
         if (result.length > 0 && "+-*/".includes(result[result.length - 1])) {
           // If two operators are encountered, replace the last one with the current one
