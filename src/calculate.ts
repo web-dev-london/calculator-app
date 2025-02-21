@@ -54,15 +54,37 @@ class Calculator {
         this.currentInput += value;
         this.displayValue += value;
       }
-    } else if (value === ".") {
-      if (this.currentInput === '') {
+    }
+    //  else if (value === ".") {
+    //   if (this.currentInput === '') {
+    //     this.currentInput = '0.';
+    //     this.displayValue = '0.';
+    //   } else if (!this.currentInput.includes('.')) {
+    //     this.currentInput += value;
+    //     this.displayValue += value;
+    //   }
+    // }
+
+    else if (value === ".") {
+      // Handling the decimal point (.)
+      if (this.isResultDisplayed) {
+        // If a result is displayed, allow decimal input after it
+        this.currentInput = this.currentInput || "0"; // Start from 0 if empty
+        this.currentInput += "."; // Add the decimal point
+        this.displayValue = this.currentInput; // Display the updated value
+        this.isResultDisplayed = false; // Allow further input
+      } else if (this.currentInput === '') {
+        // If currentInput is empty, start with '0.'
         this.currentInput = '0.';
         this.displayValue = '0.';
       } else if (!this.currentInput.includes('.')) {
+        // If there's no decimal point yet, append it
         this.currentInput += value;
         this.displayValue += value;
       }
-    } else if (value === 'C') {
+    }
+
+    else if (value === 'C') {
       this.handleClearCurrentInput();
     } else if (value === "AC") {
       this.handleClear();
