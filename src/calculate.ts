@@ -65,7 +65,7 @@ class Calculator {
       if (this.isResultDisplayed) {
         // If a result is displayed, allow decimal input after it
         this.currentInput = this.currentInput || "0"; // Start from 0 if empty
-        this.currentInput += "."; // Add the decimal point
+        this.currentInput = "0."; // Add the decimal point
         this.displayValue = this.currentInput; // Display the updated value
         this.isResultDisplayed = false; // Allow further input
       } else if (this.currentInput === '') {
@@ -160,47 +160,8 @@ class Calculator {
 
   private tokenize(expression: string): string[] {
     // Only match numbers, decimals, and operators
-    const tokens = expression.match(/(\d+(\.\d+)?)|[+\-*/]/g) || [];
+    return expression.match(/(\d+(\.\d+)?)|[+\-*/]/g) || [];
 
-    const result: string[] = [];
-
-
-    tokens.forEach((token, index) => {
-      console.log('Token and index:', {
-        token: token,
-        index: index
-      });
-
-      // Handle negative numbers: If a token starts with '-' and is followed by a number, treat it as a negative number
-      if (token === '-' && (tokens[index + 1] && !isNaN(Number(tokens[index + 1])))) {
-        result.push(token + tokens[index + 1]);
-        tokens[index + 1] = ''; // Skip the next token (which is part of the negative number)
-      }
-      if ("+-*/".includes(token)) {
-        // Check if the operator is division and the next token is zero
-        if (token === '/' && result[result.length - 1] === '0') {
-          this.handleDisplayError("Error");
-          return;
-        }
-        // Prevent adding operators if the previous token is zero and the current operator is +, -, or *
-        if (result[result.length - 1] === '0' && (token === '*' || token === '+' || token === '-')) {
-          return;
-        }
-        // If the result is not empty and the last token is an operator
-        if (result.length > 0 && "+-*/".includes(result[result.length - 1])) {
-          // If two operators are encountered, replace the last one with the current one
-          result[result.length - 1] = token;
-        } else {
-          // Otherwise, just add the operator to the result
-          result.push(token);
-        }
-      } else {
-        // If it's a number, add it to the result
-        result.push(token);
-      }
-    });
-
-    return result;
   }
 
   private convertToRPN(tokens: string[]): string[] {
@@ -208,25 +169,36 @@ class Calculator {
     const output: string[] = [];
     const operators: string[] = [];
 
-    tokens.forEach(token => {
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
+
       if (!isNaN(Number(token))) {
-        output.push(token);  // Add numbers directly to the output
-      } else if ("+-*/".includes(token)) {
-        // Handle operators based on precedence
+        output.push(token);  // Normal numbers go to output
+      }
+      // Handle negative numbers (e.g., -6, 3 * -4, 5 / -2)
+      else if (token === "-" &&
+        (i === 0 || "+-*/".includes(tokens[i - 1])) &&
+        i + 1 < tokens.length && !isNaN(Number(tokens[i + 1]))) {
+        output.push(token + tokens[i + 1]); // Merge "-4" or "-6"
+        i++; // Skip the next token since it's part of the negative number
+      }
+      // Handle normal operators
+      else if ("+-*/".includes(token)) {
         while (operators.length > 0 && precedence[operators[operators.length - 1]] >= precedence[token]) {
           output.push(operators.pop()!);
         }
-        operators.push(token);  // Push the current operator onto the stack
+        operators.push(token);
       }
-    });
+    }
 
-    // Pop any remaining operators from the stack
+    // Pop any remaining operators
     while (operators.length > 0) {
       output.push(operators.pop()!);
     }
 
     return output;
   }
+
 
   private evaluateRPN(tokens: string[]): number {
     console.log('Evaluating RPN...', tokens);
