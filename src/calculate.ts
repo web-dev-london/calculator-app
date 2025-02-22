@@ -95,6 +95,9 @@ class Calculator {
     } else if (value === '%') {
       this.handlePercentage();
     } else if (["+", "–", "×", "÷"].includes(value)) {
+      if (this.acButton) {
+        this.acButton.innerText = "AC";
+      }
       this.handleChooseOperation(value);
     } else if (value === "=") {
       this.handleCompute();
