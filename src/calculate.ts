@@ -49,7 +49,14 @@ class Calculator {
 
     // Display value in UI
     if (!isNaN(Number(value))) {
-      if (this.isResultDisplayed || this.displayValue === "0") {
+      // If display is 0 or -0, and 0 is pressed, do nothing
+      if ((this.displayValue === "-0") && value === "0") {
+        if (this.acButton) {
+          this.acButton.innerText = "C";
+        }
+        return;
+      }
+      if (this.isResultDisplayed || this.displayValue === "0" || this.currentInput === "-0") {
         // If a result was just displayed, start a new expression
         this.currentInput = value;
         this.displayValue = value;
@@ -95,6 +102,13 @@ class Calculator {
 
     this.handleUpdateDisplay();
     this.handleUpdateACToCButton();
+
+    console.log('Current state after handling:', {
+      currentInput: this.currentInput,
+      previousInput: this.previousInput,
+      displayValue: this.displayValue,
+      operation: this.operation,
+    });
   }
 
   private handleChooseOperation(operator: string) {
@@ -115,7 +129,7 @@ class Calculator {
     if (this.isResultDisplayed) {
       this.isResultDisplayed = false; // Allow new input
       this.previousInput = this.currentInput; // Store last result
-    }
+    }// fixme: check
 
 
     // Compute the result if there was any previous operation
