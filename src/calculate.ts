@@ -190,11 +190,6 @@ class Calculator {
       const token = tokens[i];
 
       if (!isNaN(Number(token))) {
-        // Handle division by zero
-        if (token === "0" && i + 1 < tokens.length && tokens[i + 1] === "/") {
-          this.handleDisplayError('Error');
-          return [];
-        }
         output.push(token);  // Normal numbers go to output
       }
       // Handle negative numbers (e.g., -6, 3 * -4, 5 / -2)
@@ -206,6 +201,11 @@ class Calculator {
       }
       // Handle normal operators
       else if ("+-*/".includes(token)) {
+        // Handle division by zero when pressing "="
+        if (token === "/" && output.length > 0 && (output[output.length - 1] === "0" || output[output.length - 1] === "-0")) {
+          this.handleDisplayError("Error"); // Show error for division by zero
+          return [];
+        }
         // Check if operator is at the end (e.g., 3 +)
         if (i === tokens.length - 1) {
           output.push(output[output.length - 1]);
