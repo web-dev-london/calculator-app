@@ -190,6 +190,11 @@ class Calculator {
       const token = tokens[i];
 
       if (!isNaN(Number(token))) {
+        // Handle division by zero
+        if (token === "0" && i + 1 < tokens.length && tokens[i + 1] === "/") {
+          this.handleDisplayError('Error');
+          return [];
+        }
         output.push(token);  // Normal numbers go to output
       }
       // Handle negative numbers (e.g., -6, 3 * -4, 5 / -2)
@@ -288,7 +293,7 @@ class Calculator {
   }
 
   private handleClear() {
-    this.currentInput = "0";
+    this.currentInput = "";
     this.previousInput = "";
     this.operation = null;
     this.isResultDisplayed = false;
