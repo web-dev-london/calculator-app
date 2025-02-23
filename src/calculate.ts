@@ -63,23 +63,27 @@ class Calculator {
 
     // Display value in UI
     if (!isNaN(Number(value))) {
-      // If display is 0 or -0, and 0 is pressed, do nothing
-      if ((this.currentInput === "-0") && value === "0") {
-        if (this.acButton) {
-          this.acButton.innerText = "C";
-        }
-        return;
-      }
-      if (this.isResultDisplayed || this.displayValue === "0" || this.currentInput === "-0") {
-        // If a result was just displayed, start a new expression
-        this.currentInput = value;
-        this.displayValue = value;
+      // Handle the case where the display is "-0" and the user presses a number.
+      if (this.displayValue === '-0') {
+        // When "-0" is displayed and a number is pressed, make it a negative number.
+        this.currentInput = `-${value}`;
+        this.displayValue = `-${value}`;
         this.isResultDisplayed = false;
       } else {
-        this.currentInput += value;
-        this.displayValue += value;
+        // Handle other cases for normal input.
+        if (this.isResultDisplayed || this.displayValue === "0" || this.currentInput === "-0") {
+          // If a result was just displayed, start a new expression.
+          this.currentInput = value;
+          this.displayValue = value;
+          this.isResultDisplayed = false;
+        } else {
+          // Otherwise, add the value to the current input.
+          this.currentInput += value;
+          this.displayValue += value;
+        }
       }
     }
+
 
     else if (value === ".") {
       // Handling the decimal point (.)
@@ -321,7 +325,7 @@ class Calculator {
   private handleUpdateACToCButton() {
     const operators = ['+', '–', '×', '÷'];
     if (this.acButton) {
-      if (this.currentInput !== '' && this.currentInput !== '0' && this.currentInput !== '-0' && operators.includes(this.currentInput)) {
+      if (this.currentInput !== '' && this.currentInput !== '0' && this.currentInput !== '-0') {
         this.acButton.innerText = 'C';
       } else {
         this.acButton.innerText = 'AC';
