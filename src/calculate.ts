@@ -4,10 +4,12 @@ class Calculator {
   private displayElement: HTMLInputElement;
   private displayValue = "";
   private currentInput = "";
-  private previousInput = "";
-  private operation: string | null = null;// fixme: Remove if not needed
   private acButton: HTMLButtonElement | null = null;
   private isResultDisplayed = false;
+  // 🆕 Store the last operation
+  // private lastOperator: string | null = null;
+  // private lastOperand: string | null = null;
+
 
   constructor(displaySelector: string) {
     this.displayElement = document.querySelector(displaySelector) as HTMLInputElement;
@@ -34,10 +36,15 @@ class Calculator {
     console.log("Handling input:", value);
     console.log("Current state before handling:", {
       currentInput: this.currentInput,
-      previousInput: this.previousInput,
       displayValue: this.displayValue,
-      operation: this.operation,
     });
+
+    // if (this.acButton) {
+    //   if (this.currentInput === '0' && this.isOperator(value)) {
+    //     this.acButton.innerText = 'AC';
+    //     return;
+    //   }
+    // }
 
     // Reset after an error
     if (this.displayElement.value === "Error") {
@@ -47,10 +54,17 @@ class Calculator {
       }
     }
 
+    // if (this.currentInput === '-0' && this.isOperator(value)) {
+    //   if (this.acButton) {
+    //     this.acButton.innerText = 'AC';
+    //   }
+    //   return;
+    // }
+
     // Display value in UI
     if (!isNaN(Number(value))) {
       // If display is 0 or -0, and 0 is pressed, do nothing
-      if ((this.displayValue === "-0") && value === "0") {
+      if ((this.currentInput === "-0") && value === "0") {
         if (this.acButton) {
           this.acButton.innerText = "C";
         }
@@ -94,7 +108,7 @@ class Calculator {
       this.handleToggleSign();
     } else if (value === '%') {
       this.handlePercentage();
-    } else if (["+", "–", "×", "÷"].includes(value)) {
+    } else if (this.isOperator(value)) {
       if (this.acButton) {
         this.acButton.innerText = "AC";
       }
@@ -108,46 +122,59 @@ class Calculator {
 
     console.log('Current state after handling:', {
       currentInput: this.currentInput,
-      previousInput: this.previousInput,
       displayValue: this.displayValue,
-      operation: this.operation,
     });
   }
 
+  private isOperator(value: string): boolean {
+    return ["+", "–", "×", "÷"].includes(value);
+  }
+
   private handleChooseOperation(operator: string) {
-    console.log('Handling choose operation:', operator);
-
-    // // If the user enters an operator without a number, do nothing
-    // if (this.currentInput === "" && this.previousInput === "") return;
-
-
+    // // Check if the last character is an operator
+    // if (this.currentInput !== "" && ["+", "–", "×", "÷"].includes(this.currentInput.slice(-1))) {
+    //   // Replace the last operator with the new one
+    //   this.currentInput = this.currentInput.slice(0, -1) + operator;
+    //   this.displayValue = "";   // Reset displayValue so only numbers show
+    //   return;
+    // }
     // Append operator to currentInput if it's not empty
     if (this.currentInput !== "") {
       this.currentInput += operator;  // Append operator to the expression
       this.displayValue = "";   // Reset displayValue so only numbers show
       return;
     }
-
-    // If the user presses an operator after "=", continue with the last computed value
-    if (this.isResultDisplayed) {
-      this.isResultDisplayed = false; // Allow new input
-      this.previousInput = this.currentInput; // Store last result
-    }// fixme: check
-
-
-    // Compute the result if there was any previous operation
-    if (this.previousInput !== "" && this.currentInput !== "") {
+    // Compute the result if currentInput is not empty
+    if (this.currentInput !== "") {
       this.handleCompute();
     }
-    // Set the new operation
-    this.operation = operator;
-    this.previousInput = this.currentInput;
-    this.currentInput = "";
+
+    // // Ensure currentInput is always a string
+    // if (typeof this.currentInput !== "string") {
+    //   this.currentInput = "";
+    // }
+
+    // // Prevent multiple consecutive operators
+    // if (this.currentInput === "" || ["+", "–", "×", "÷"].includes(this.currentInput.slice(-1))) {
+    //   return; // Do nothing if input is empty or last character is an operator
+    // }
+
+    // this.currentInput += operator;
+    // this.displayValue = "";
   }
 
   private handleCompute() {
+    // if ((this.currentInput === '' || this.displayValue === '') && ['+', '–', '×', '÷'].includes('÷')) {
+    //   this.handleDisplayError('Error');
+    //   return;
+    // }
     try {
-      console.log('Computing result...');
+      // if (this.acButton) {
+      //   if (this.currentInput === '' && ['+', '–', '×', '÷'].includes('÷')) {
+      //     this.handleDisplayError('Error');
+      //     return;
+      //   }
+      // }
       let expression = this.currentInput.replace(/–/g, "-").replace(/×/g, "*").replace(/÷/g, "/");
       console.log('Expression after replacing operators:', expression);
 
@@ -158,16 +185,14 @@ class Calculator {
         return;
       }
       const rpn = this.convertToRPN(tokens);
-      console.log('Reversed Polish Notation (RPN):', rpn);
       const result = this.evaluateRPN(rpn);
       console.log('Computed result:', result);
 
+      // ✅ Handle repeated "=" presses (e.g., -2 + = -4 = -6 = -8)
 
       this.currentInput = result.toString();
       this.displayValue = result.toString(); // Ensure only the result is shown
       this.isResultDisplayed = true;
-      console.log('Current input after computing:', this.currentInput);
-      console.log('Display value after computing:', this.displayValue);
     } catch (error) {
       this.handleDisplayError("Error");
     }
@@ -206,10 +231,12 @@ class Calculator {
           this.handleDisplayError("Error"); // Show error for division by zero
           return [];
         }
+
         // Check if operator is at the end (e.g., 3 +)
         if (i === tokens.length - 1) {
           output.push(output[output.length - 1]);
         }
+
         while (operators.length > 0 && precedence[operators[operators.length - 1]] >= precedence[token]) {
           output.push(operators.pop()!);
         }
@@ -224,7 +251,6 @@ class Calculator {
 
     return output;
   }
-
 
   private evaluateRPN(tokens: string[]): number {
     console.log('Evaluating RPN...', tokens);
@@ -251,15 +277,8 @@ class Calculator {
 
   private handlePercentage() {
     if (!this.currentInput || isNaN(parseFloat(this.currentInput))) return;
-    // Case 1: If no operation is currently active, apply percentage immediately
-    if (this.operation === null && this.previousInput === "") {
-      this.currentInput = (parseFloat(this.currentInput) / 100).toString();
-      this.displayValue = this.currentInput;  // Update display with the immediate result
-    }
-    // If there is ongoing operations, defer the percentage application
-    else if (this.operation !== null) {
-      this.currentInput += "%";  // Mark it for deferred calculation
-    }
+    this.currentInput = (parseFloat(this.currentInput) / 100).toString();
+    this.displayValue = this.currentInput;  // Update display with the immediate result
   }
 
   private handleToggleSign() {
@@ -297,17 +316,16 @@ class Calculator {
   }
 
   private handleClear() {
-    this.currentInput = "";
-    this.previousInput = "";
-    this.operation = null;
+    this.currentInput = "0";
     this.isResultDisplayed = false;
     this.displayValue = "0";
     this.displayElement.value = "0"; // Ensure the display shows 0 after clearing
   }
 
   private handleUpdateACToCButton() {
+    const operators = ['+', '–', '×', '÷'];
     if (this.acButton) {
-      if (this.currentInput !== '' && this.currentInput !== '0' && this.currentInput !== '-0') {
+      if (this.currentInput !== '' && this.currentInput !== '0' && this.currentInput !== '-0' && operators.includes(this.currentInput)) {
         this.acButton.innerText = 'C';
       } else {
         this.acButton.innerText = 'AC';
@@ -316,10 +334,9 @@ class Calculator {
   }
 
   private handleUpdateDisplay() {
-    console.log('Display updated to:', this.displayValue);
     if (this.displayElement.value === "Error") return;
     if (this.displayValue !== "") {
-      this.displayElement.value = this.displayValue || this.previousInput;
+      this.displayElement.value = this.displayValue || "0";
     }
   }
 
@@ -327,8 +344,6 @@ class Calculator {
     this.displayElement.value = message;
     this.displayValue = message;
     this.currentInput = "";
-    this.previousInput = "";
-    this.operation = null;
     this.isResultDisplayed = true;
 
     if (this.acButton) {
