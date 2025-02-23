@@ -131,13 +131,13 @@ class Calculator {
   }
 
   private handleChooseOperation(operator: string) {
-    // // Check if the last character is an operator
-    // if (this.currentInput !== "" && ["+", "–", "×", "÷"].includes(this.currentInput.slice(-1))) {
-    //   // Replace the last operator with the new one
-    //   this.currentInput = this.currentInput.slice(0, -1) + operator;
-    //   this.displayValue = "";   // Reset displayValue so only numbers show
-    //   return;
-    // }
+    // Check if the last character is an operator
+    if (this.currentInput !== "" && ["+", "–", "×", "÷"].includes(this.currentInput.slice(-1))) {
+      // Replace the last operator with the new one
+      this.currentInput = this.currentInput.slice(0, -1) + operator;
+      this.displayValue = "";   // Reset displayValue so only numbers show
+      return;
+    }
     // Append operator to currentInput if it's not empty
     if (this.currentInput !== "") {
       this.currentInput += operator;  // Append operator to the expression
