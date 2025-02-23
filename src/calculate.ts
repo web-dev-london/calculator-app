@@ -206,6 +206,10 @@ class Calculator {
       }
       // Handle normal operators
       else if ("+-*/".includes(token)) {
+        // Check if operator is at the end (e.g., 3 +)
+        if (i === tokens.length - 1) {
+          output.push(output[output.length - 1]);
+        }
         while (operators.length > 0 && precedence[operators[operators.length - 1]] >= precedence[token]) {
           output.push(operators.pop()!);
         }
