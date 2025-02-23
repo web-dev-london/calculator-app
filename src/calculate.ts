@@ -164,17 +164,13 @@ class Calculator {
   }
 
   private handleCompute() {
-    // if ((this.currentInput === '' || this.displayValue === '') && ['+', '–', '×', '÷'].includes('÷')) {
-    //   this.handleDisplayError('Error');
-    //   return;
-    // }
     try {
-      // if (this.acButton) {
-      //   if (this.currentInput === '' && ['+', '–', '×', '÷'].includes('÷')) {
-      //     this.handleDisplayError('Error');
-      //     return;
-      //   }
-      // }
+      if (this.acButton) {
+        if (this.currentInput === '' && ['+', '–', '×', '÷'].includes('÷')) {
+          this.handleDisplayError('Error');
+          return;
+        }
+      }
       let expression = this.currentInput.replace(/–/g, "-").replace(/×/g, "*").replace(/÷/g, "/");
       console.log('Expression after replacing operators:', expression);
 
