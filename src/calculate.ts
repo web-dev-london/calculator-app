@@ -39,13 +39,6 @@ class Calculator {
       displayValue: this.displayValue,
     });
 
-    // if (this.acButton) {
-    //   if (this.currentInput === '0' && this.isOperator(value)) {
-    //     this.acButton.innerText = 'AC';
-    //     return;
-    //   }
-    // }
-
     // Reset after an error
     if (this.displayElement.value === "Error") {
       if (value === "AC") {
@@ -54,13 +47,6 @@ class Calculator {
       }
     }
 
-    // if (this.currentInput === '-0' && this.isOperator(value)) {
-    //   if (this.acButton) {
-    //     this.acButton.innerText = 'AC';
-    //   }
-    //   return;
-    // }
-
     // Display value in UI
     if (!isNaN(Number(value))) {
       // Handle the case where the display is "-0" and the user presses a number.
@@ -68,6 +54,7 @@ class Calculator {
         // When "-0" is displayed and a number is pressed, make it a negative number.
         this.currentInput = `-${value}`;
         this.displayValue = `-${value}`;
+        this.handleUpdateACToCButton();
         this.isResultDisplayed = false;
       } else {
         // Handle other cases for normal input.
@@ -84,7 +71,6 @@ class Calculator {
       }
     }
 
-
     else if (value === ".") {
       // Handling the decimal point (.)
       if (this.isResultDisplayed) {
@@ -93,11 +79,16 @@ class Calculator {
         this.currentInput = "0."; // Add the decimal point
         this.displayValue = this.currentInput; // Display the updated value
         this.isResultDisplayed = false; // Allow further input
-      } else if (this.currentInput === '') {
+      } else if (this.currentInput === '' || this.currentInput === '0') {
         // If currentInput is empty, start with '0.'
         this.currentInput = '0.';
         this.displayValue = '0.';
-      } else if (!this.currentInput.includes('.')) {
+      } else if (this.currentInput === '-0') {
+        this.currentInput = '-0.';
+        this.displayValue = '-0.';
+        this.handleUpdateACToCButton();
+      }
+      else if (!this.currentInput.includes('.')) {
         // If there's no decimal point yet, append it
         this.currentInput += value;
         this.displayValue += value;
@@ -169,19 +160,13 @@ class Calculator {
 
   private handleCompute() {
     try {
-      if (this.acButton) {
-        if (this.currentInput === '' && ['+', '–', '×', '÷'].includes('÷')) {
-          this.handleDisplayError('Error');
-          return;
-        }
-      }
+      // Check if the current input is empty and division operator is pressed
       let expression = this.currentInput.replace(/–/g, "-").replace(/×/g, "*").replace(/÷/g, "/");
       console.log('Expression after replacing operators:', expression);
 
       const tokens = this.tokenize(expression);
       console.log('Tokens:', tokens);
       if (tokens.length === 0) {
-        console.log('No tokens found', { tokens });
         return;
       }
       const rpn = this.convertToRPN(tokens);
@@ -322,16 +307,45 @@ class Calculator {
     this.displayElement.value = "0"; // Ensure the display shows 0 after clearing
   }
 
+
   private handleUpdateACToCButton() {
-    const operators = ['+', '–', '×', '÷'];
-    if (this.acButton) {
-      if (this.currentInput !== '' && this.currentInput !== '0' && this.currentInput !== '-0') {
-        this.acButton.innerText = 'C';
-      } else {
-        this.acButton.innerText = 'AC';
-      }
-    }
+    if (!this.acButton) return;
+
+    const operators = ["+", "–", "×", "÷"];
+
+    // Check when to switch to "C"
+    const shouldShowC =
+      this.currentInput !== "" &&
+      this.currentInput !== "0" &&
+      this.currentInput !== "-0" &&
+      !operators.some(op => this.currentInput.includes(op)) &&
+      parseFloat(this.currentInput).toString() !== "-0."; // Prevent `-0.` cases
+
+    this.acButton.innerText = shouldShowC ? "C" : "AC";
   }
+
+
+
+  // private handleUpdateACToCButton() {
+  //   const operators = ["+", "–", "×", "÷"]; // Array of operators
+  //   if (this.acButton) {
+  //     // Check if currentInput is greater than '0' and is not '0', '-0', '0+' or '0-', or other operators
+  //     // !/^0[+\×÷]/.test(this.currentInput)
+  //     if (
+  //       this.currentInput !== '' &&
+  //       this.currentInput !== '0' &&
+  //       this.currentInput !== '-0' &&
+  //       this.currentInput !== '0-' &&
+  //       !operators.some(op => this.currentInput.includes(op)) && // Prevent '0+' or '0-' etc.
+  //       parseFloat(this.currentInput).toString() !== '-0.' // Prevent '-0.'
+  //     ) {
+  //       this.acButton.innerText = 'C';
+  //     } else {
+  //       this.acButton.innerText = 'AC';
+  //     }
+  //   }
+  // }
+
 
   private handleUpdateDisplay() {
     if (this.displayElement.value === "Error") return;
