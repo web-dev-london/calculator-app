@@ -266,25 +266,50 @@ class Calculator {
     this.displayValue = this.currentInput;  // Update display with the immediate result
   }
 
-  private handleToggleSign() {
-    // If current input is 0. add a negative sign
-    if (this.currentInput === '0') {
-      this.currentInput = '-0';
-      this.displayValue = '-0';
-      return;
-    }
 
-    if (this.currentInput === '') {
-      this.currentInput = '-0';
-      this.displayValue = '-0';
-    } else if (this.currentInput.startsWith('-')) {
+  private handleToggleSign() {
+    if (this.currentInput === "0") {
+      this.currentInput = "-0";
+      this.displayValue = "-0";
+    } else if (this.currentInput === "0.") {
+      this.currentInput = "-0.";
+      this.displayValue = "-0.";
+    } else if (this.currentInput === "-0.") {
+      this.currentInput = "0.";
+      this.displayValue = "0.";
+    } else if (this.currentInput === "") {
+      this.currentInput = "-0";
+      this.displayValue = "-0";
+    } else if (this.currentInput.startsWith("-")) {
       this.currentInput = this.currentInput.slice(1);
       this.displayValue = this.displayValue.slice(1);
     } else {
-      this.currentInput = '-' + this.currentInput;
-      this.displayValue = '-' + this.displayValue;
+      this.currentInput = "-" + this.currentInput;
+      this.displayValue = "-" + this.displayValue;
     }
   }
+
+
+
+  // private handleToggleSign() {
+  //   // If current input is 0. add a negative sign
+  //   if (this.currentInput === '0') {
+  //     this.currentInput = '-0';
+  //     this.displayValue = '-0';
+  //     return;
+  //   }
+
+  //   if (this.currentInput === '') {
+  //     this.currentInput = '-0';
+  //     this.displayValue = '-0';
+  //   } else if (this.currentInput.startsWith('-')) {
+  //     this.currentInput = this.currentInput.slice(1);
+  //     this.displayValue = this.displayValue.slice(1);
+  //   } else {
+  //     this.currentInput = '-' + this.currentInput;
+  //     this.displayValue = '-' + this.displayValue;
+  //   }
+  // }
 
   private handleClearCurrentInput() {
     // Clear only the current input when result is displayed
@@ -308,6 +333,23 @@ class Calculator {
   }
 
 
+  // private handleUpdateACToCButton() {
+  //   if (!this.acButton) return;
+
+  //   const operators = ["+", "–", "×", "÷"];
+
+  //   // Check when to switch to "C"
+  //   const shouldShowC =
+  //     this.currentInput !== "" &&
+  //     this.currentInput !== "0" &&
+  //     this.currentInput !== "-0" &&
+  //     !operators.some(op => this.currentInput.includes(op)) &&
+  //     parseFloat(this.currentInput).toString() !== "-0."; // Prevent `-0.` cases
+
+  //   this.acButton.innerText = shouldShowC ? "C" : "AC";
+  // }
+
+
   private handleUpdateACToCButton() {
     if (!this.acButton) return;
 
@@ -318,8 +360,9 @@ class Calculator {
       this.currentInput !== "" &&
       this.currentInput !== "0" &&
       this.currentInput !== "-0" &&
-      !operators.some(op => this.currentInput.includes(op)) &&
-      parseFloat(this.currentInput).toString() !== "-0."; // Prevent `-0.` cases
+      this.currentInput !== "0." &&
+      this.currentInput !== "-0." && // Fix for "-0."
+      !operators.some(op => this.currentInput.includes(op));
 
     this.acButton.innerText = shouldShowC ? "C" : "AC";
   }
