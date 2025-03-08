@@ -54,8 +54,7 @@ class Calculator {
         // When "-0" is displayed and a number is pressed, make it a negative number.
         this.currentInput = `-${value}`;
         this.displayValue = `-${value}`;
-        this.handleUpdateACToCButton();
-        this.isResultDisplayed = false;
+        // this.isResultDisplayed = false;
       } else {
         // Handle other cases for normal input.
         if (this.isResultDisplayed || this.displayValue === "0" || this.currentInput === "-0") {
@@ -252,7 +251,15 @@ class Calculator {
           case "+": stack.push(a + b); break;
           case "-": stack.push(a - b); break;
           case "*": stack.push(a * b); break;
-          case "/": stack.push(a / b); break;
+          case "/":
+            if (b === 0) {
+              this.handleDisplayError("Error"); // Division by zero should always be an error
+              return;
+            }
+            const result = a / b;
+            stack.push(Object.is(a, -0) ? 0 : result); // Convert -0 to 0
+            break;
+
         }
       }
     });
@@ -267,49 +274,50 @@ class Calculator {
   }
 
 
-  private handleToggleSign() {
-    if (this.currentInput === "0") {
-      this.currentInput = "-0";
-      this.displayValue = "-0";
-    } else if (this.currentInput === "0.") {
-      this.currentInput = "-0.";
-      this.displayValue = "-0.";
-    } else if (this.currentInput === "-0.") {
-      this.currentInput = "0.";
-      this.displayValue = "0.";
-    } else if (this.currentInput === "") {
-      this.currentInput = "-0";
-      this.displayValue = "-0";
-    } else if (this.currentInput.startsWith("-")) {
-      this.currentInput = this.currentInput.slice(1);
-      this.displayValue = this.displayValue.slice(1);
-    } else {
-      this.currentInput = "-" + this.currentInput;
-      this.displayValue = "-" + this.displayValue;
-    }
-  }
-
-
-
   // private handleToggleSign() {
-  //   // If current input is 0. add a negative sign
-  //   if (this.currentInput === '0') {
-  //     this.currentInput = '-0';
-  //     this.displayValue = '-0';
-  //     return;
-  //   }
-
-  //   if (this.currentInput === '') {
-  //     this.currentInput = '-0';
-  //     this.displayValue = '-0';
-  //   } else if (this.currentInput.startsWith('-')) {
+  //   if (this.currentInput === "0") {
+  //     this.currentInput = "-0";
+  //     this.displayValue = "-0";
+  //   } else if (this.currentInput === "0.") {
+  //     this.currentInput = "-0.";
+  //     this.displayValue = "-0.";
+  //   } else if (this.currentInput === "-0.") {
+  //     this.currentInput = "0.";
+  //     this.displayValue = "0.";
+  //   } else if (this.currentInput === "") {
+  //     this.currentInput = "-0";
+  //     this.displayValue = "-0";
+  //   } else if (this.currentInput.startsWith("-")) {
   //     this.currentInput = this.currentInput.slice(1);
   //     this.displayValue = this.displayValue.slice(1);
   //   } else {
-  //     this.currentInput = '-' + this.currentInput;
-  //     this.displayValue = '-' + this.displayValue;
+  //     this.currentInput = "-" + this.currentInput;
+  //     this.displayValue = "-" + this.displayValue;
   //   }
   // }
+
+
+
+  private handleToggleSign() {
+    // If current input is 0. add a negative sign
+    if (this.currentInput === '0') {
+      this.currentInput = '-0';
+      this.displayValue = '-0';
+      return;
+    }
+
+    if (this.currentInput === '') {
+      this.currentInput = '-0';
+      this.displayValue = '-0';
+    } else if (this.currentInput.startsWith('-')) {
+      this.currentInput = this.currentInput.slice(1);
+      this.displayValue = this.displayValue.slice(1);
+    } else {
+      this.currentInput = '-' + this.currentInput;
+      this.displayValue = '-' + this.displayValue;
+    }
+  }
+
 
   private handleClearCurrentInput() {
     // Clear only the current input when result is displayed
@@ -330,64 +338,24 @@ class Calculator {
     this.isResultDisplayed = false;
     this.displayValue = "0";
     this.displayElement.value = "0"; // Ensure the display shows 0 after clearing
+
+    if (this.acButton) {
+      this.acButton.innerText = "AC";
+    }
   }
-
-
-  // private handleUpdateACToCButton() {
-  //   if (!this.acButton) return;
-
-  //   const operators = ["+", "–", "×", "÷"];
-
-  //   // Check when to switch to "C"
-  //   const shouldShowC =
-  //     this.currentInput !== "" &&
-  //     this.currentInput !== "0" &&
-  //     this.currentInput !== "-0" &&
-  //     !operators.some(op => this.currentInput.includes(op)) &&
-  //     parseFloat(this.currentInput).toString() !== "-0."; // Prevent `-0.` cases
-
-  //   this.acButton.innerText = shouldShowC ? "C" : "AC";
-  // }
-
 
   private handleUpdateACToCButton() {
     if (!this.acButton) return;
 
-    const operators = ["+", "–", "×", "÷"];
+    // If input is only "0" or "0+" (or any operator after 0), keep AC
+    const shouldKeepAC =
+      this.currentInput === "" ||  // No input at all
+      this.currentInput === "0" || // Only "0" entered
+      this.currentInput === "-0" || // Handling "-0" case
+      (this.currentInput.length === 2 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1])); // Handles "0+"
 
-    // Check when to switch to "C"
-    const shouldShowC =
-      this.currentInput !== "" &&
-      this.currentInput !== "0" &&
-      this.currentInput !== "-0" &&
-      this.currentInput !== "0." &&
-      this.currentInput !== "-0." && // Fix for "-0."
-      !operators.some(op => this.currentInput.includes(op));
-
-    this.acButton.innerText = shouldShowC ? "C" : "AC";
+    this.acButton.innerText = shouldKeepAC ? "AC" : "C";
   }
-
-
-
-  // private handleUpdateACToCButton() {
-  //   const operators = ["+", "–", "×", "÷"]; // Array of operators
-  //   if (this.acButton) {
-  //     // Check if currentInput is greater than '0' and is not '0', '-0', '0+' or '0-', or other operators
-  //     // !/^0[+\×÷]/.test(this.currentInput)
-  //     if (
-  //       this.currentInput !== '' &&
-  //       this.currentInput !== '0' &&
-  //       this.currentInput !== '-0' &&
-  //       this.currentInput !== '0-' &&
-  //       !operators.some(op => this.currentInput.includes(op)) && // Prevent '0+' or '0-' etc.
-  //       parseFloat(this.currentInput).toString() !== '-0.' // Prevent '-0.'
-  //     ) {
-  //       this.acButton.innerText = 'C';
-  //     } else {
-  //       this.acButton.innerText = 'AC';
-  //     }
-  //   }
-  // }
 
 
   private handleUpdateDisplay() {
@@ -452,3 +420,9 @@ class Clock {
 
 // Initialize the Clock instance
 new Clock('.hour', '.minute');
+
+
+/* else if (this.currentInput === '-0' && this.acButton && value === '0') {
+        this.acButton.innerText = "CE";
+      }
+         */
