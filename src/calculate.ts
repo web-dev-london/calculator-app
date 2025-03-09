@@ -210,8 +210,8 @@ class Calculator {
       }
       // Handle normal operators
       else if ("+-*/".includes(token)) {
-        // Handle division by zero when pressing "="
-        if (token === "/" && output.length > 0 && (output[output.length - 1] === "0" || output[output.length - 1] === "-0")) {
+        // Only throw an error when division BY 0
+        if (token === "/" && tokens[i + 1] === "0") {
           this.handleDisplayError("Error"); // Show error for division by zero
           return [];
         }
@@ -258,7 +258,7 @@ class Calculator {
               return;
             }
             const result = a / b;
-            stack.push(Object.is(a, -0) ? 0 : result); // Convert -0 to 0
+            stack.push(result); // Convert -0 to 0
             break;
 
         }
