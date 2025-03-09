@@ -163,11 +163,12 @@ class Calculator {
       let expression = this.currentInput.replace(/–/g, "-").replace(/×/g, "*").replace(/÷/g, "/");
       console.log('Expression after replacing operators:', expression);
 
-      // Handle cases like "0*0=", "0*=", "0+0=", "0+="
-      if (/^0[+\-*]0?$/.test(expression)) {
+      // Handle cases like "0*0=", "0*=", "0+0=", "0+=", "0+-0", "0--0", etc
+      if (/^0[+\-*]0?$/.test(expression) || /^0[+\-*]{2,}0?$/.test(expression)) {
         this.handleClear();
         return;
       }
+
 
       const tokens = this.tokenize(expression);
       console.log('Tokens:', tokens);
@@ -378,7 +379,9 @@ class Calculator {
         this.currentInput === "0" || // Only "0" entered
         this.currentInput === "-0" || // Handling "-0" case
         (this.currentInput.length === 2 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1])) ||  // Handles "0+"
-        (this.currentInput.length === 3 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1]) && this.currentInput.endsWith('0')); // Handles "0+0"
+        (this.currentInput.length === 3 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1]) && this.currentInput.endsWith('0')) || // Handles "0+0"
+        // Handles '0+-0'
+        (this.currentInput.length === 4 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1]) && this.displayValue === '-0' && this.currentInput.endsWith('0'));
 
       this.acButton.innerText = shouldKeepAC ? "AC" : "C";
     }
