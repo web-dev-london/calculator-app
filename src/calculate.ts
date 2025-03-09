@@ -177,6 +177,8 @@ class Calculator {
       this.currentInput = result.toString();
       this.displayValue = result.toString(); // Ensure only the result is shown
       this.isResultDisplayed = true;
+
+      this.handleUpdateACToCButton();
     } catch (error) {
       this.handleDisplayError("Error");
     }
@@ -346,16 +348,25 @@ class Calculator {
   private handleUpdateACToCButton() {
     if (!this.acButton) return;
 
-    // If input is only "0" or "0+" (or any operator after 0), keep AC
-    const shouldKeepAC =
-      this.currentInput === "" ||  // No input at all
-      this.currentInput === "0" || // Only "0" entered
-      this.currentInput === "-0" || // Handling "-0" case
-      (this.currentInput.length === 2 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1])) ||  // Handles "0+"
-      (this.currentInput.length === 3 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1]) && this.currentInput.endsWith('0')); // Handles "0+0"
+    if (this.isResultDisplayed && this.displayValue === "Error") {
+      this.acButton.innerText = "AC";
+    }
+    // If a result is displayed, set the button to "C"
+    else if (this.isResultDisplayed) {
+      this.acButton.innerText = "C";
+    } else {
+      // If input is only "0", "0+" or other conditions, show "AC"
+      const shouldKeepAC =
+        this.currentInput === "" ||  // No input at all
+        this.currentInput === "0" || // Only "0" entered
+        this.currentInput === "-0" || // Handling "-0" case
+        (this.currentInput.length === 2 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1])) ||  // Handles "0+"
+        (this.currentInput.length === 3 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1]) && this.currentInput.endsWith('0')); // Handles "0+0"
 
-    this.acButton.innerText = shouldKeepAC ? "AC" : "C";
+      this.acButton.innerText = shouldKeepAC ? "AC" : "C";
+    }
   }
+
 
 
   private handleUpdateDisplay() {
