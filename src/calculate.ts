@@ -126,7 +126,7 @@ class Calculator {
 
   private handleChooseOperation(operator: string) {
     // Check if the last character is an operator
-    if (this.currentInput !== "" && ["+", "–", "×", "÷"].includes(this.currentInput.slice(-1))) {
+    if (this.currentInput !== "" && this.isOperator(this.currentInput.slice(-1))) {
       // Replace the last operator with the new one
       this.currentInput = this.currentInput.slice(0, -1) + operator;
       this.displayValue = "";   // Reset displayValue so only numbers show
@@ -306,6 +306,13 @@ class Calculator {
   // }
 
   private handleToggleSign() {
+    // Handle cases where the last character is an operator
+    if (this.currentInput !== "" && this.isOperator(this.currentInput.slice(-1))) {
+      this.currentInput += '-0';
+      this.displayValue = '-0';
+      return;
+    }
+
     // If current input is 0. add a negative sign
     if (this.currentInput === '0') {
       this.currentInput = '-0';
@@ -323,6 +330,7 @@ class Calculator {
       this.currentInput = '-' + this.currentInput;
       this.displayValue = '-' + this.displayValue;
     }
+
   }
 
 
