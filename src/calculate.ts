@@ -314,6 +314,14 @@ class Calculator {
       return;
     }
 
+    // Handle cases like "2+-0" correctly
+    const tokens = this.tokenize(this.currentInput);
+    if (tokens.length >= 2 && tokens[tokens.length - 1] === "0") {
+      this.currentInput = this.currentInput.slice(0, -1) + "-0";
+      this.displayValue = this.displayValue.slice(0, -1) + "-0";
+      return;
+    }
+
     // If current input is 0. add a negative sign
     if (this.currentInput === '0') {
       this.currentInput = '-0';
