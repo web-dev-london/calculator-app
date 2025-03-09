@@ -307,21 +307,32 @@ class Calculator {
   // }
 
   private handleToggleSign() {
+    if (this.currentInput === '-0') {
+      this.currentInput = '0';
+      this.displayValue = '0';
+      return;
+    }
     // Handle cases where the last character is an operator
     if (this.currentInput !== "" && this.isOperator(this.currentInput.slice(-1))) {
       this.currentInput += '-0';
-      this.displayValue = '-0';
+      this.displayValue += '-0';
       return;
     }
 
     // Handle cases like "2+-0" correctly
     const tokens = this.tokenize(this.currentInput);
     if (tokens.length >= 2 && tokens[tokens.length - 1] === "0") {
-      this.currentInput = this.currentInput.slice(0, -1) + "-0";
-      this.displayValue = this.displayValue.slice(0, -1) + "-0";
+      // If it's already "-0", remove the minus sign
+      if (this.currentInput.endsWith("-0")) {
+        this.currentInput = this.currentInput.slice(0, -2) + "0";  // Remove the minus from "-0"
+        this.displayValue = this.displayValue.slice(0, -2) + "0";  // Ensure display value is updated
+      } else {
+        // Otherwise, add the minus to "0" to make it "-0"
+        this.currentInput = this.currentInput.slice(0, -1) + "-0";
+        this.displayValue = this.displayValue.slice(0, -1) + "-0";
+      }
       return;
     }
-
     // If current input is 0. add a negative sign
     if (this.currentInput === '0') {
       this.currentInput = '-0';
@@ -339,7 +350,6 @@ class Calculator {
       this.currentInput = '-' + this.currentInput;
       this.displayValue = '-' + this.displayValue;
     }
-
   }
 
 
