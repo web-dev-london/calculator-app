@@ -163,6 +163,12 @@ class Calculator {
       let expression = this.currentInput.replace(/–/g, "-").replace(/×/g, "*").replace(/÷/g, "/");
       console.log('Expression after replacing operators:', expression);
 
+      // Handle cases like "0*0=", "0*=", "0+0=", "0+="
+      if (/^0[+\-*]0?$/.test(expression)) {
+        this.handleClear();
+        return;
+      }
+
       const tokens = this.tokenize(expression);
       console.log('Tokens:', tokens);
       if (tokens.length === 0) {
@@ -350,10 +356,13 @@ class Calculator {
 
     if (this.isResultDisplayed && this.displayValue === "Error") {
       this.acButton.innerText = "AC";
+      return;
     }
-    // If a result is displayed, set the button to "C"
-    else if (this.isResultDisplayed) {
+
+    // If a result is displayed and user hasn't typed anything new, show "C"
+    if (this.isResultDisplayed) {
       this.acButton.innerText = "C";
+      return;
     } else {
       // If input is only "0", "0+" or other conditions, show "AC"
       const shouldKeepAC =
@@ -431,9 +440,3 @@ class Clock {
 
 // Initialize the Clock instance
 new Clock('.hour', '.minute');
-
-
-/* else if (this.currentInput === '-0' && this.acButton && value === '0') {
-        this.acButton.innerText = "CE";
-      }
-         */
