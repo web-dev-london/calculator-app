@@ -240,6 +240,7 @@ class Calculator {
     console.log('Evaluating RPN...', tokens);
     const stack: number[] = [];
 
+
     tokens.forEach(token => {
       if (!isNaN(Number(token))) {
         stack.push(Number(token));
@@ -296,8 +297,6 @@ class Calculator {
   //   }
   // }
 
-
-
   private handleToggleSign() {
     // If current input is 0. add a negative sign
     if (this.currentInput === '0') {
@@ -352,7 +351,8 @@ class Calculator {
       this.currentInput === "" ||  // No input at all
       this.currentInput === "0" || // Only "0" entered
       this.currentInput === "-0" || // Handling "-0" case
-      (this.currentInput.length === 2 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1])); // Handles "0+"
+      (this.currentInput.length === 2 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1])) ||  // Handles "0+"
+      (this.currentInput.length === 3 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1]) && this.currentInput.endsWith('0')); // Handles "0+0"
 
     this.acButton.innerText = shouldKeepAC ? "AC" : "C";
   }
