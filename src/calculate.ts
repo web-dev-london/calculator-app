@@ -185,9 +185,13 @@ class Calculator {
   }
 
   private tokenize(expression: string): string[] {
-    // Only match numbers, decimals, and operators
+    // Replace incorrect subtraction character `–` with `-`
+    expression = expression.replace(/–/g, "-")
+
+    // Match numbers, decimals, and operators
     return expression.match(/(\d+(\.\d+)?)|[+\-*/]/g) || [];
   }
+
 
   private convertToRPN(tokens: string[]): string[] {
     const precedence: { [key: string]: number } = { "+": 1, "-": 1, "*": 2, "/": 2 };
@@ -270,6 +274,7 @@ class Calculator {
     if (!value || isNaN(parseFloat(value))) return;
 
     const tokens = this.tokenize(this.currentInput);
+    console.log('Tokens before percentage:', tokens);
 
     if (tokens.length < 2) {
       // If there's only one number, simply divide it by 100
@@ -281,9 +286,11 @@ class Calculator {
       const lastNumber = parseFloat(tokens.pop()!);
       const operator = tokens[tokens.length - 1];
 
-      if (!isNaN(lastNumber) && ["+", "-", "*", "/"].includes(operator)) {
+      if (!isNaN(lastNumber) && ["+", "-", "×", "÷"].includes(operator)) {
         // Get the previous number in the expression
         const prevNumber = parseFloat(tokens[tokens.length - 2]);
+
+        // Apply percentage relative to the previous number
         const percentageValue = (lastNumber / 100) * prevNumber;
 
         // Update currentInput by replacing last number with its percentage value
@@ -295,6 +302,7 @@ class Calculator {
 
     this.isResultDisplayed = true;
   }
+
 
   /* 
   
