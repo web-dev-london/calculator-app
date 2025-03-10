@@ -101,7 +101,8 @@ class Calculator {
     } else if (value === "+/-") {
       this.handleToggleSign();
     } else if (value === '%') {
-      this.handlePercentage();
+      this.handlePercentage(this.currentInput);//todo: check this
+      this.currentInput += value; // Add the percentage symbol to the current input
     } else if (this.isOperator(value)) {
       if (this.acButton) {
         this.acButton.innerText = "AC";
@@ -142,25 +143,15 @@ class Calculator {
     if (this.currentInput !== "") {
       this.handleCompute();
     }
-
-    // // Ensure currentInput is always a string
-    // if (typeof this.currentInput !== "string") {
-    //   this.currentInput = "";
-    // }
-
-    // // Prevent multiple consecutive operators
-    // if (this.currentInput === "" || ["+", "–", "×", "÷"].includes(this.currentInput.slice(-1))) {
-    //   return; // Do nothing if input is empty or last character is an operator
-    // }
-
-    // this.currentInput += operator;
-    // this.displayValue = "";
   }
 
   private handleCompute() {
     try {
       // Check if the current input is empty and division operator is pressed
-      let expression = this.currentInput.replace(/–/g, "-").replace(/×/g, "*").replace(/÷/g, "/");
+      let expression = this.currentInput
+        .replace(/–/g, "-")
+        .replace(/×/g, "*")
+        .replace(/÷/g, "/");
       console.log('Expression after replacing operators:', expression);
 
       // Handle cases like "0*0=", "0*=", "0+0=", "0+=", "0+-0", "0--0", etc
@@ -196,7 +187,6 @@ class Calculator {
   private tokenize(expression: string): string[] {
     // Only match numbers, decimals, and operators
     return expression.match(/(\d+(\.\d+)?)|[+\-*/]/g) || [];
-
   }
 
   private convertToRPN(tokens: string[]): string[] {
@@ -269,7 +259,6 @@ class Calculator {
             const result = a / b;
             stack.push(result); // Convert -0 to 0
             break;
-
         }
       }
     });
@@ -277,34 +266,49 @@ class Calculator {
     return stack[0];
   }
 
-  private handlePercentage() {
-    if (!this.currentInput || isNaN(parseFloat(this.currentInput))) return;
-    this.currentInput = (parseFloat(this.currentInput) / 100).toString();
-    this.displayValue = this.currentInput;  // Update display with the immediate result
+  private handlePercentage(value: string) {
+    if (!value || isNaN(parseFloat(value))) return;
+
+    const tokens = this.tokenize(this.currentInput);
+
+    if (tokens.length < 2) {
+      // If there's only one number, simply divide it by 100
+      const percentageValue = parseFloat(this.currentInput) / 100;
+      this.currentInput = percentageValue.toString();
+      this.displayValue = this.currentInput;
+    } else {
+      // If there's an operation before the percentage, take the last number and apply percentage
+      const lastNumber = parseFloat(tokens.pop()!);
+      const operator = tokens[tokens.length - 1];
+
+      if (!isNaN(lastNumber) && ["+", "-", "*", "/"].includes(operator)) {
+        // Get the previous number in the expression
+        const prevNumber = parseFloat(tokens[tokens.length - 2]);
+        const percentageValue = (lastNumber / 100) * prevNumber;
+
+        // Update currentInput by replacing last number with its percentage value
+        tokens.push(percentageValue.toString());
+        this.currentInput = tokens.join(""); // Reconstruct the expression
+        this.displayValue = percentageValue.toString();
+      }
+    }
+
+    this.isResultDisplayed = true;
   }
 
+  /* 
+  
+  else {
+        // Convert the current input into a percentage (divide by 100)
+        const percentageValue = parseFloat(value) / 100;
+  
+        // Update the current input and display value
+        this.currentInput = percentageValue.toString();
+        this.displayValue = this.currentInput;
+      }
+  
+   */
 
-  // private handleToggleSign() {
-  //   if (this.currentInput === "0") {
-  //     this.currentInput = "-0";
-  //     this.displayValue = "-0";
-  //   } else if (this.currentInput === "0.") {
-  //     this.currentInput = "-0.";
-  //     this.displayValue = "-0.";
-  //   } else if (this.currentInput === "-0.") {
-  //     this.currentInput = "0.";
-  //     this.displayValue = "0.";
-  //   } else if (this.currentInput === "") {
-  //     this.currentInput = "-0";
-  //     this.displayValue = "-0";
-  //   } else if (this.currentInput.startsWith("-")) {
-  //     this.currentInput = this.currentInput.slice(1);
-  //     this.displayValue = this.displayValue.slice(1);
-  //   } else {
-  //     this.currentInput = "-" + this.currentInput;
-  //     this.displayValue = "-" + this.displayValue;
-  //   }
-  // }
 
   private handleToggleSign() {
     if (this.currentInput === '-0') {
