@@ -312,20 +312,6 @@ class Calculator {
   }
 
 
-  /* 
-  
-  else {
-        // Convert the current input into a percentage (divide by 100)
-        const percentageValue = parseFloat(value) / 100;
-  
-        // Update the current input and display value
-        this.currentInput = percentageValue.toString();
-        this.displayValue = this.currentInput;
-      }
-  
-   */
-
-
   private handleToggleSign() {
     if (this.currentInput === '-0') {
       this.currentInput = '0';
@@ -416,6 +402,7 @@ class Calculator {
         this.currentInput === "" ||  // No input at all
         this.currentInput === "0" || // Only "0" entered
         this.currentInput === "-0" || // Handling "-0" case
+        this.currentInput.startsWith('%') || // Handles "0%"
         (this.currentInput.length === 2 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1])) ||  // Handles "0+"
         (this.currentInput.length === 3 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1]) && this.currentInput.endsWith('0')) || // Handles "0+0"
         // Handles '0+-0'
