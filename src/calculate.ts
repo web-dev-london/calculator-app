@@ -186,7 +186,10 @@ class Calculator {
 
   private tokenize(expression: string): string[] {
     // Replace incorrect subtraction character `–` with `-`
-    expression = expression.replace(/–/g, "-")
+    expression = expression
+      .replace(/–/g, "-")
+      .replace(/×/g, "*")
+      .replace(/÷/g, "/");
 
     // Match numbers, decimals, and operators
     return expression.match(/(\d+(\.\d+)?)|[+\-*/]/g) || [];
@@ -286,17 +289,22 @@ class Calculator {
       const lastNumber = parseFloat(tokens.pop()!);
       const operator = tokens[tokens.length - 1];
 
-      if (!isNaN(lastNumber) && ["+", "-", "×", "÷"].includes(operator)) {
-        // Get the previous number in the expression
-        const prevNumber = parseFloat(tokens[tokens.length - 2]);
+      let percentageValue: undefined | number;
 
-        // Apply percentage relative to the previous number
-        const percentageValue = (lastNumber / 100) * prevNumber;
+      if (!isNaN(lastNumber)) {
+        if (["+", "-"].includes(operator)) {
+          // Get the previous number in the expression
+          const prevNumber = parseFloat(tokens[tokens.length - 2]);
+          // Apply percentage relative to the previous number
+          percentageValue = (lastNumber / 100) * prevNumber;
+        } else if (["*", "/"].includes(operator)) {
+          percentageValue = lastNumber / 100
+        }
 
         // Update currentInput by replacing last number with its percentage value
-        tokens.push(percentageValue.toString());
+        tokens.push(percentageValue?.toString() ?? '');
         this.currentInput = tokens.join(""); // Reconstruct the expression
-        this.displayValue = percentageValue.toString();
+        this.displayValue = percentageValue?.toString() ?? '';
       }
     }
 
