@@ -402,7 +402,7 @@ class Calculator {
         this.currentInput === "" ||  // No input at all
         this.currentInput === "0" || // Only "0" entered
         this.currentInput === "-0" || // Handling "-0" case
-        this.currentInput.startsWith('%') || // Handles "0%"
+        this.currentInput.startsWith('%') || // Handles "%"
         (this.currentInput.length === 2 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1])) ||  // Handles "0+"
         (this.currentInput.length === 3 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1]) && this.currentInput.endsWith('0')) || // Handles "0+0"
         // Handles '0+-0'
@@ -411,7 +411,6 @@ class Calculator {
       this.acButton.innerText = shouldKeepAC ? "AC" : "C";
     }
   }
-
 
 
   private handleUpdateDisplay() {
