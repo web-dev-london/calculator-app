@@ -335,11 +335,18 @@ class Calculator {
 
 
   private handlePercentage(value: string) {
-    // If currentInput starts with '0' do nothing
+    // If currentInput is '-0', set displayValue to '0'
     if (this.acButton) {
-      if (this.currentInput.match(/^0%+$/) || this.currentInput === '0')
+      if (this.currentInput.match(/^0%+$/)) {
         return;
+      }
+      if (this.currentInput === '-0') {
+        this.currentInput = '0';
+        this.displayValue = '0';
+      }
     }
+
+
     if (!value || isNaN(parseFloat(value))) return;
 
     const tokens = this.tokenize(this.currentInput);
@@ -397,15 +404,20 @@ class Calculator {
     this.isResultDisplayed = true;
   }
 
-
-
-
   private handleToggleSign() {
-    if (this.currentInput === '-0') {
+    // Handle scenarios where the current input is '%' or '0%'
+    if (this.currentInput.match(/^%+$/) || this.currentInput.match(/^0%+$/)) {
+      this.currentInput = '-0';
+      this.displayValue = '-0';
+      return;
+    }
+    // Handle if currentInput is '-0'
+    if (this.currentInput === '-0' || this.currentInput.match(/^-0%+$/)) {
       this.currentInput = '0';
       this.displayValue = '0';
       return;
     }
+
     // Handle cases where the last character is an operator
     if (this.currentInput !== "" && this.isOperator(this.currentInput.slice(-1))) {
       this.currentInput += '-0';
@@ -413,38 +425,84 @@ class Calculator {
       return;
     }
 
-    // Handle cases like "2+-0" correctly
-    const tokens = this.tokenize(this.currentInput);
-    if (tokens.length >= 2 && tokens[tokens.length - 1] === "0") {
-      // If it's already "-0", remove the minus sign
-      if (this.currentInput.endsWith("-0")) {
-        this.currentInput = this.currentInput.slice(0, -2) + "0";  // Remove the minus from "-0"
-        this.displayValue = this.displayValue.slice(0, -2) + "0";  // Ensure display value is updated
-      } else {
-        // Otherwise, add the minus to "0" to make it "-0"
-        this.currentInput = this.currentInput.slice(0, -1) + "-0";
-        this.displayValue = this.displayValue.slice(0, -1) + "-0";
-      }
-      return;
-    }
-    // If current input is 0. add a negative sign
-    if (this.currentInput === '0') {
+    // Handle special cases where the current input is just '0' or '-0'
+    if (this.currentInput === '0' || this.currentInput === '') {
       this.currentInput = '-0';
       this.displayValue = '-0';
       return;
     }
 
-    if (this.currentInput === '') {
-      this.currentInput = '-0';
-      this.displayValue = '-0';
-    } else if (this.currentInput.startsWith('-')) {
-      this.currentInput = this.currentInput.slice(1);
-      this.displayValue = this.displayValue.slice(1);
+    // Handle cases like '-0.' and '0.'
+    if (this.currentInput === '0.') {
+      this.currentInput = '-0.';
+      this.displayValue = '-0.';
+      return;
+    }
+
+    if (this.currentInput === '-0.') {
+      this.currentInput = '0.';
+      this.displayValue = '0.';
+      return;
+    }
+
+    // Toggle the sign for other cases
+    if (this.currentInput.startsWith('-')) {
+      this.currentInput = this.currentInput.slice(1); // Remove the leading minus
+      this.displayValue = this.displayValue.slice(1); // Update display
     } else {
-      this.currentInput = '-' + this.currentInput;
-      this.displayValue = '-' + this.displayValue;
+      this.currentInput = '-' + this.currentInput; // Add a minus to the start
+      this.displayValue = '-' + this.displayValue; // Update display
+    }
+    this.toggleZeroSign();
+  }
+
+  private toggleZeroSign() {
+    // Tokenize the current input
+    const tokens = this.tokenize(this.currentInput);
+    console.log('Tokens:', tokens);
+
+    // If the last token is "0", we want to handle the sign correctly
+    if (tokens.length >= 2 && tokens[tokens.length - 1] === "0") {
+      console.log('Tokens length:', tokens.length);
+
+      // Get the first and last token values
+      const lastIndex = tokens[tokens.length - 1]; // Last token should be '0'
+
+      // Fix: Join tokens properly 2+-0
+      const joinedTokens = tokens.slice(1, tokens.length - 1).join('') + '-' + lastIndex;
+      console.log('Joined tokens:', joinedTokens); // It should output '2+-0'
+
+      // Update currentInput with the correct result
+      this.currentInput = joinedTokens;
+
+      // Update displayValue to match the last token ('-0')
+      this.displayValue = '-0';
+
+      // Log the current state after handling
+      console.log('Current state after handling:', {
+        currentInput: this.currentInput,
+        displayValue: this.displayValue
+      });
+
+      return;
     }
   }
+
+
+
+
+  /* 
+    // // If the current input ends with "-0", remove the minus and make it "0"
+      // if (this.currentInput.endsWith("-0")) {
+      //   this.currentInput = this.currentInput.slice(0, -2) + "0";
+      //   this.displayValue = this.displayValue.slice(0, -2) + "0";
+      // }
+      // // If the current input ends with "0", add the minus to make it "-0"
+      // else if (this.currentInput.endsWith("0")) {
+      //   this.currentInput = this.currentInput.slice(0, -1) + "-0";
+      //   this.displayValue = this.displayValue.slice(0, -1) + "-0";
+      // }
+   */
 
   private handleClearCurrentInput() {
     // Clear only the current input when result is displayed
@@ -490,7 +548,6 @@ class Calculator {
         this.currentInput === "0" || // Only "0" entered
         this.currentInput === "-0" || // Handling "-0" case
         this.currentInput.startsWith('%') || // Handles "%"
-        this.currentInput.match(/^0%+$/) ||
         (this.currentInput.length === 2 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1])) ||  // Handles "0+"
         (this.currentInput.length === 3 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1]) && this.currentInput.endsWith('0')) || // Handles "0+0"
         // Handles '0+-0'
