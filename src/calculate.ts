@@ -101,8 +101,8 @@ class Calculator {
     } else if (value === "+/-") {
       this.handleToggleSign();
     } else if (value === '%') {
-      this.handlePercentage(this.currentInput);//todo: check this
-      this.currentInput += value; // Add the percentage symbol to the current input
+      this.handlePercentage(this.currentInput);
+      this.currentInput += value;
     } else if (this.isOperator(value)) {
       if (this.acButton) {
         this.acButton.innerText = "AC";
@@ -126,6 +126,9 @@ class Calculator {
   }
 
   private handleChooseOperation(operator: string) {
+    if (this.acButton) {
+      this.acButton.innerText = "AC";
+    }
     // Check if the last character is an operator
     if (this.currentInput !== "" && this.isOperator(this.currentInput.slice(-1))) {
       // Replace the last operator with the new one
@@ -133,12 +136,15 @@ class Calculator {
       this.displayValue = "";   // Reset displayValue so only numbers show
       return;
     }
+
     // Append operator to currentInput if it's not empty
     if (this.currentInput !== "") {
       this.currentInput += operator;  // Append operator to the expression
       this.displayValue = "";   // Reset displayValue so only numbers show
       return;
     }
+
+
     // Compute the result if currentInput is not empty
     if (this.currentInput !== "") {
       this.handleCompute();
@@ -148,10 +154,7 @@ class Calculator {
   private handleCompute() {
     try {
       // Check if the current input is empty and division operator is pressed
-      let expression = this.currentInput
-        .replace(/–/g, "-")
-        .replace(/×/g, "*")
-        .replace(/÷/g, "/");
+      let expression = this.normalizeExpression(this.currentInput)
       console.log('Expression after replacing operators:', expression);
 
       // Handle cases like "0*0=", "0*=", "0+0=", "0+=", "0+-0", "0--0", etc
@@ -159,7 +162,6 @@ class Calculator {
         this.handleClear();
         return;
       }
-
 
       const tokens = this.tokenize(expression);
       console.log('Tokens:', tokens);
@@ -185,16 +187,17 @@ class Calculator {
   }
 
   private tokenize(expression: string): string[] {
-    // Replace incorrect subtraction character `–` with `-`
-    expression = expression
-      .replace(/–/g, "-")
-      .replace(/×/g, "*")
-      .replace(/÷/g, "/");
-
+    expression = this.normalizeExpression(expression)
     // Match numbers, decimals, and operators
     return expression.match(/(\d+(\.\d+)?)|[+\-*/]/g) || [];
   }
 
+  private normalizeExpression(expression: string): string {
+    return expression
+      .replace(/–/g, "-")
+      .replace(/×/g, "*")
+      .replace(/÷/g, "/");
+  }
 
   private convertToRPN(tokens: string[]): string[] {
     const precedence: { [key: string]: number } = { "+": 1, "-": 1, "*": 2, "/": 2 };
@@ -274,6 +277,8 @@ class Calculator {
   }
 
   private handlePercentage(value: string) {
+    // If currentInput starts with '0' do nothing
+    if (this.currentInput.startsWith('0')) return;
     if (!value || isNaN(parseFloat(value))) return;
 
     const tokens = this.tokenize(this.currentInput);
@@ -310,7 +315,6 @@ class Calculator {
 
     this.isResultDisplayed = true;
   }
-
 
   private handleToggleSign() {
     if (this.currentInput === '-0') {
@@ -358,7 +362,6 @@ class Calculator {
     }
   }
 
-
   private handleClearCurrentInput() {
     // Clear only the current input when result is displayed
     if (this.isResultDisplayed) {
@@ -403,6 +406,7 @@ class Calculator {
         this.currentInput === "0" || // Only "0" entered
         this.currentInput === "-0" || // Handling "-0" case
         this.currentInput.startsWith('%') || // Handles "%"
+        this.currentInput.match(/^0%+$/) ||
         (this.currentInput.length === 2 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1])) ||  // Handles "0+"
         (this.currentInput.length === 3 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1]) && this.currentInput.endsWith('0')) || // Handles "0+0"
         // Handles '0+-0'
@@ -411,7 +415,6 @@ class Calculator {
       this.acButton.innerText = shouldKeepAC ? "AC" : "C";
     }
   }
-
 
   private handleUpdateDisplay() {
     if (this.displayElement.value === "Error") return;
