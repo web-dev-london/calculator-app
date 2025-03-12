@@ -276,45 +276,129 @@ class Calculator {
     return stack[0];
   }
 
+  // private handlePercentage(value: string) {
+
+  //   // If currentInput starts with '0' do nothing
+  //   if (this.acButton) {
+  //     if (this.currentInput.match(/^0%+$/) || this.currentInput === '0')
+  //       return;
+  //   }
+  //   if (!value || isNaN(parseFloat(value))) return;
+
+  //   const tokens = this.tokenize(this.currentInput);
+  //   console.log('Tokens before percentage:', tokens);
+
+  //   if (tokens.length < 2 || (tokens.length === 2 && tokens[0] === '-')) {
+  //     // Handle negative standalone numbers 
+  //     const fullNumber = parseFloat(this.currentInput)
+  //     if (!isNaN(fullNumber)) {
+  //       // If there's only one number, simply divide it by 100
+  //       const percentageValue = fullNumber / 100;
+  //       this.currentInput = percentageValue.toString();
+  //       this.displayValue = this.currentInput;
+  //     }
+  //   } else {
+  //     // If there's an operation before the percentage, take the last number and apply percentage
+  //     const lastNumber = parseFloat(tokens.pop()!);
+  //     const operator = tokens[tokens.length - 1];
+
+  //     console.log('Last number:', lastNumber);
+  //     console.log('Operator:', operator);
+
+  //     let percentageValue: undefined | number;
+
+  //     if (!isNaN(lastNumber)) {
+  //       if (["+", "-"].includes(operator)) {
+  //         // Get the previous number in the expression
+  //         const prevNumber = parseFloat(tokens[tokens.length - 2]);
+  //         console.log('Previous number:', prevNumber);
+  //         // Apply percentage relative to the previous number
+  //         percentageValue = (lastNumber / 100) * prevNumber;
+  //         console.log('Percentage value:', percentageValue);
+  //       } else if (["*", "/"].includes(operator)) {
+  //         percentageValue = lastNumber / 100
+  //         console.log('Percentage value:', percentageValue);
+  //       }
+
+  //       // Update currentInput by replacing last number with its percentage value
+  //       tokens.push(percentageValue?.toString() ?? '');
+  //       this.currentInput = tokens.join(""); // Reconstruct the expression
+  //       this.displayValue = percentageValue?.toString() ?? '';
+  //       console.log('Updated currentInput:', this.currentInput);
+  //       console.log('Updated displayValue:', this.displayValue);  // Show the percentage value
+  //     }
+  //   }
+
+  //   this.isResultDisplayed = true;
+  // }
+
+
+
   private handlePercentage(value: string) {
     // If currentInput starts with '0' do nothing
-    if (this.currentInput.startsWith('0')) return;
+    if (this.acButton) {
+      if (this.currentInput.match(/^0%+$/) || this.currentInput === '0')
+        return;
+    }
     if (!value || isNaN(parseFloat(value))) return;
 
     const tokens = this.tokenize(this.currentInput);
     console.log('Tokens before percentage:', tokens);
 
-    if (tokens.length < 2) {
-      // If there's only one number, simply divide it by 100
-      const percentageValue = parseFloat(this.currentInput) / 100;
-      this.currentInput = percentageValue.toString();
-      this.displayValue = this.currentInput;
+    if (tokens.length < 2 || (tokens.length === 2 && tokens[0] === '-')) {
+      // Handle negative standalone numbers 
+      const fullNumber = parseFloat(this.currentInput)
+      if (!isNaN(fullNumber)) {
+        // If there's only one number, simply divide it by 100
+        const percentageValue = fullNumber / 100;
+        this.currentInput = percentageValue.toString();
+        this.displayValue = this.currentInput;
+      }
     } else {
       // If there's an operation before the percentage, take the last number and apply percentage
       const lastNumber = parseFloat(tokens.pop()!);
       const operator = tokens[tokens.length - 1];
 
+      console.log('Last number:', lastNumber);
+      console.log('Operator:', operator);
+
       let percentageValue: undefined | number;
 
       if (!isNaN(lastNumber)) {
+        let prevNumberStr = tokens[0] === '-' ? '-' + tokens[1] : tokens[tokens.length - 2];
+
+        // Log for debugging
+        console.log('Previous number:', prevNumberStr);
+
+        const prevNumber = parseFloat(prevNumberStr);
+
+        // Apply percentage based on the previous number
         if (["+", "-"].includes(operator)) {
-          // Get the previous number in the expression
-          const prevNumber = parseFloat(tokens[tokens.length - 2]);
-          // Apply percentage relative to the previous number
           percentageValue = (lastNumber / 100) * prevNumber;
         } else if (["*", "/"].includes(operator)) {
-          percentageValue = lastNumber / 100
+          percentageValue = lastNumber / 100;
         }
+
+        // Log for debugging
+        console.log('Percentage value:', percentageValue);
 
         // Update currentInput by replacing last number with its percentage value
         tokens.push(percentageValue?.toString() ?? '');
         this.currentInput = tokens.join(""); // Reconstruct the expression
         this.displayValue = percentageValue?.toString() ?? '';
+
+        // Log for debugging
+        console.log('Updated currentInput:', this.currentInput);
+        console.log('Updated displayValue:', this.displayValue);  // Show the percentage value
       }
+
     }
 
     this.isResultDisplayed = true;
   }
+
+
+
 
   private handleToggleSign() {
     if (this.currentInput === '-0') {
