@@ -96,6 +96,7 @@ class Calculator {
       this.handleClear();
     } else if (value === "+/-") {
       this.handleToggleSign(this.currentInput);
+      return;
     } else if (value === '%') {
       this.handlePercentage(this.currentInput);
       this.currentInput += value;
@@ -184,49 +185,97 @@ class Calculator {
   }
 
 
+  // private tokenize(input: string): string[] {
+  //   input = this.normalizeExpression(input);
+  //   const tokens: string[] = [];
+  //   let currentToken = '';
+
+  //   // Loop through the input character by character
+  //   for (let i = 0; i < input.length; i++) {
+  //     const char = input[i];
+
+  //     // Check if the character is a digit or decimal
+  //     if (/\d/.test(char) || char === '.') {
+  //       currentToken += char;
+  //     }
+  //     // Check for operators (+, -, *, /)
+  //     else if (char === '-' || char === '+' || char === '*' || char === '/') {
+  //       // If the current token exists (it's a number), push it
+  //       if (currentToken) {
+  //         tokens.push(currentToken);
+  //         currentToken = '';
+  //       }
+
+  //       // If the character is a negative sign at the beginning or after an operator,
+  //       // treat it as part of a negative number (like '-2' rather than '- 2')
+  //       if (char === '-' && (i === 0 || ['+', '-', '*', '/'].includes(input[i - 1]))) {
+  //         currentToken += char; // It's part of a negative number
+  //       } else {
+  //         tokens.push(char); // It's a subtraction or other operator
+  //       }
+  //     }
+
+  //     // Ignore spaces (if any)
+  //     else if (char !== ' ') {
+  //       throw new Error(`Unexpected character: ${char}`);
+  //     }
+  //   }
+
+  //   // Push the last token if there is one
+  //   if (currentToken) {
+  //     tokens.push(currentToken);
+  //   }
+
+  //   return tokens;
+  // }
+
+
+
   private tokenize(input: string): string[] {
-    input = this.normalizeExpression(input);
+    input = this.normalizeExpression(input);  // Normalize input to handle cases like '--' as '+'
     const tokens: string[] = [];
     let currentToken = '';
 
-    // Loop through the input character by character
     for (let i = 0; i < input.length; i++) {
       const char = input[i];
 
-      // Check if the character is a digit or decimal
+      // Handle numbers and decimals
       if (/\d/.test(char) || char === '.') {
         currentToken += char;
       }
-      // Check for operators (+, -, *, /)
       else if (char === '-' || char === '+' || char === '*' || char === '/') {
-        // If the current token exists (it's a number), push it
         if (currentToken) {
-          tokens.push(currentToken);
+          tokens.push(currentToken);  // Push the completed number
           currentToken = '';
         }
 
-        // If the character is a negative sign at the beginning or after an operator,
-        // treat it as part of a negative number (like '-2' rather than '- 2')
-        if (char === '-' && (i === 0 || ['+', '-', '*', '/'].includes(input[i - 1]))) {
-          currentToken += char; // It's part of a negative number
-        } else {
-          tokens.push(char); // It's a subtraction or other operator
+        // If there's a consecutive `--`, treat it as a plus
+        if (char === '-' && i + 1 < input.length && input[i + 1] === '-') {
+          tokens.push("+");  // Convert `--` into `+`
+          i++;  // Skip next `-`
+        }
+        else if (char === '-' && (tokens.length === 0 || ['+', '-', '*', '/'].includes(tokens[tokens.length - 1]))) {
+          // Treat a '-' at the start or after an operator as part of a negative number
+          currentToken += char;
+        }
+        else {
+          tokens.push(char);  // Otherwise, it's a regular operator
         }
       }
-
-      // Ignore spaces (if any)
       else if (char !== ' ') {
         throw new Error(`Unexpected character: ${char}`);
       }
     }
 
-    // Push the last token if there is one
     if (currentToken) {
-      tokens.push(currentToken);
+      tokens.push(currentToken);  // Push any leftover number
     }
 
     return tokens;
   }
+
+
+
 
 
   private normalizeExpression(expression: string): string {
@@ -234,7 +283,8 @@ class Calculator {
       .replace(/–/g, "-")
       .replace(/×/g, "*")
       .replace(/÷/g, "/")
-      .replace(/%/g, '');
+      .replace(/%/g, '')
+      .replace(/--/g, "+");
   }
 
   private convertToRPN(tokens: string[]): string[] {
@@ -457,33 +507,57 @@ class Calculator {
   //   this.handleUpdateDisplay();
   // }
 
-
   private handleToggleSign(value: string) {
+    // Tokenize the input expression
     const tokens = this.tokenize(value);
     console.log('Tokens length:', tokens.length);
     console.log('Tokens:', tokens);
 
     if (!tokens.length) return;
 
-    // Loop through tokens in reverse order to find the first number
+    // Loop through tokens in reverse order to find the last number token
     for (let i = tokens.length - 1; i >= 0; i--) {
       const token = tokens[i];
 
       if (!isNaN(Number(token))) {
-        // Toggle the first number found
-        if (i > 0 && tokens[i - 1] === "-") {
-          // If previous token is '-', remove it (switch sign)
-          tokens.splice(i - 1, 1);
-        } else {
-          // Otherwise, toggle sign normally
-          tokens[i] = this.toggleTokenSign(token);
-        }
-        break;
+        // Toggle the sign of the number token
+        tokens[i] = this.toggleTokenSign(token);
+        break;  // Stop after changing the last number
       }
     }
 
+    // Update the display and current input
     this.updateLastToken(tokens);
   }
+
+
+
+  // private handleToggleSign(value: string) {
+  //   const tokens = this.tokenize(value);
+  //   console.log('Tokens length:', tokens.length);
+  //   console.log('Tokens:', tokens);
+
+  //   if (!tokens.length) return;
+
+  //   // Loop through tokens in reverse order to find the first number
+  //   for (let i = tokens.length - 1; i >= 0; i--) {
+  //     const token = tokens[i];
+
+  //     if (!isNaN(Number(token))) {
+  //       // Toggle the first number found
+  //       if (i > 0 && tokens[i - 1] === "-") {
+  //         // If previous token is '-', remove it (switch sign)
+  //         tokens.splice(i - 1, 1);
+  //       } else {
+  //         // Otherwise, toggle sign normally
+  //         tokens[i] = this.toggleTokenSign(token);
+  //       }
+  //       break;
+  //     }
+  //   }
+
+  //   this.updateLastToken(tokens);
+  // }
 
 
 
@@ -491,10 +565,12 @@ class Calculator {
   private toggleTokenSign(token: string): string {
     console.log('Toggling sign for token:', token);
     if (!isNaN(Number(token))) {
+      // If the number is negative, make it positive; if positive, make it negative
       return token.startsWith('-') ? token.slice(1) : `-${token}`;
     }
-    return token; // Return operator unchanged
+    return token;  // Return operator unchanged
   }
+
 
 
   private updateLastToken(tokens: string[]) {
@@ -511,6 +587,7 @@ class Calculator {
 
     this.handleUpdateDisplay();  // Update the UI or display
   }
+
 
 
   /* 
