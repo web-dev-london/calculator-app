@@ -284,7 +284,6 @@ class Calculator {
       .replace(/×/g, "*")
       .replace(/÷/g, "/")
       .replace(/%/g, '')
-      .replace(/--/g, "+");
   }
 
   private convertToRPN(tokens: string[]): string[] {
@@ -507,6 +506,7 @@ class Calculator {
   //   this.handleUpdateDisplay();
   // }
 
+
   private handleToggleSign(value: string) {
     // Tokenize the input expression
     const tokens = this.tokenize(value);
@@ -572,7 +572,6 @@ class Calculator {
   }
 
 
-
   private updateLastToken(tokens: string[]) {
     const lastToken = tokens[tokens.length - 1];
     console.log('Last token after update:', lastToken);
@@ -587,25 +586,6 @@ class Calculator {
 
     this.handleUpdateDisplay();  // Update the UI or display
   }
-
-
-
-  /* 
-    if ((!value || isNaN(parseFloat(value))) || value.match(/^0%+$/)) {
-      this.currentInput = '-0';
-      this.displayValue = '-0';
-      return;
-    }
-    if (value.startsWith('-')) {
-      this.currentInput = value.slice(1);
-    } else {
-      this.currentInput = `-${value}`;
-    }
-    this.displayValue = this.currentInput;
-
-    this.handleUpdateDisplay();
-   */
-
 
 
   private handleClearCurrentInput() {
