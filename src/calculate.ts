@@ -169,7 +169,6 @@ class Calculator {
       const result = this.evaluateRPN(rpn);
       console.log('Computed result:', result);
 
-      // ✅ Handle repeated "=" presses (e.g., -2 + = -4 = -6 = -8)
 
       this.currentInput = result.toString();
       this.displayValue = result.toString(); // Ensure only the result is shown
@@ -183,20 +182,73 @@ class Calculator {
     this.handleUpdateDisplay();
   }
 
-  private tokenize(expression: string): string[] {
-    expression = this.normalizeExpression(expression)
-    // Match numbers, decimals, and operators
-    // return expression.match(/(\d+(\.\d+)?)|[+\-*/]/g) || [];
 
-    // return expression.match(/(?:-?\d+(\.\d+)?)|[+\-*/]/g) || [];
-    return expression.match(/(?:-?\d+(\.\d+)?)|[+\-*/]/g) || [];
+  // Match numbers, decimals, and operators
+  // return expression.match(/(\d+(\.\d+)?)|[+\-*/]/g) || [];
+  // return expression.match(/(?:-?\d+(\.\d+)?)|[+\-*/]/g) || [];
+  // return expression.match(/(?:-?\d+(\.\d*)?)|[+\-*/]/g) || [];
+
+
+  // return expression.match(/(?:-?\d+(?:\.\d*)?)|[+\-*/]/g) || [];
+
+  // private tokenize(expression: string): string[] {
+  //   expression = this.normalizeExpression(expression)
+  //   // Match numbers (including negative and decimal) and operators separately
+  //   const numbers = expression.match(/-?\d+(?:\.\d*)?/g) || [];
+  //   const operators = expression.match(/[+\-*/]/g) || [];
+
+  //   return [...numbers, ...operators];
+
+  // }
+
+
+
+  private tokenize(expression: string): string[] {
+    expression = this.normalizeExpression(expression);
+
+    const tokens: string[] = [];
+    let numBuffer = "";
+
+    for (let i = 0; i < expression.length; i++) {
+      const char = expression[i];
+
+      if (/\d/.test(char) || char === ".") {
+        // Build a number, including decimals
+        numBuffer += char;
+      } else {
+        // If there is a number in buffer, push it to tokens first
+        if (numBuffer) {
+          tokens.push(numBuffer);
+          numBuffer = "";
+        }
+
+        // If the current '-' is a negative sign (not a subtraction operator)
+        if (
+          char === "-" &&
+          (tokens.length === 0 || /[+\-*/(]/.test(tokens[tokens.length - 1]))
+        ) {
+          numBuffer = "-"; // Start forming a negative number
+        } else {
+          tokens.push(char); // Otherwise, it's a subtraction operator
+        }
+      }
+    }
+
+    // Push last number from buffer
+    if (numBuffer) tokens.push(numBuffer);
+
+    return tokens;
   }
+
+
+
 
   private normalizeExpression(expression: string): string {
     return expression
       .replace(/–/g, "-")  // Normalize the subtraction operator
       .replace(/×/g, "*")
       .replace(/÷/g, "/")
+      .replace(/[–—]/g, '-'); // Normalize the minus sign
   }
 
   private convertToRPN(tokens: string[]): string[] {
@@ -332,8 +384,6 @@ class Calculator {
   //   this.isResultDisplayed = true;
   // }
 
-
-
   private handlePercentage(value: string) {
     // If currentInput is '-0', set displayValue to '0'
     if (this.acButton) {
@@ -429,9 +479,19 @@ class Calculator {
 
     if (!tokens.length) return;
 
+    // Loop through tokens in reverse order to find the first number
     for (let i = tokens.length - 1; i >= 0; i--) {
-      if (!isNaN(Number(tokens[i]))) {
-        tokens[i] = this.toggleTokenSign(tokens[i]);
+      const token = tokens[i];
+
+      if (!isNaN(Number(token))) {
+        // Toggle the first number found
+        if (i > 0 && tokens[i - 1] === "-") {
+          // If previous token is '-', remove it (switch sign)
+          tokens.splice(i - 1, 1);
+        } else {
+          // Otherwise, toggle sign normally
+          tokens[i] = this.toggleTokenSign(token);
+        }
         break;
       }
     }
@@ -439,13 +499,17 @@ class Calculator {
     this.updateLastToken(tokens);
   }
 
+
+
+
   private toggleTokenSign(token: string): string {
     console.log('Toggling sign for token:', token);
     if (!isNaN(Number(token))) {
       return token.startsWith('-') ? token.slice(1) : `-${token}`;
     }
-    return token;
+    return token; // Return operator unchanged
   }
+
 
   private updateLastToken(tokens: string[]) {
     const lastToken = tokens[tokens.length - 1];
