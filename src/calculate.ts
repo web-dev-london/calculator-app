@@ -186,14 +186,20 @@ class Calculator {
   private tokenize(expression: string): string[] {
     expression = this.normalizeExpression(expression)
     // Match numbers, decimals, and operators
+    // return expression.match(/(\d+(\.\d+)?)|[+\-*/]/g) || [];
+
+    // return expression.match(/(?:-?\d+(\.\d+)?)|[+\-*/]/g) || [];
+
+    // Match numbers (including negatives), decimals, and operators
+    // Update regex to ensure it treats "-" as a unary operator when part of a number
     return expression.match(/(\d+(\.\d+)?)|[+\-*/]/g) || [];
   }
 
   private normalizeExpression(expression: string): string {
     return expression
-      .replace(/–/g, "-")
+      .replace(/–/g, "-")  // Normalize the subtraction operator
       .replace(/×/g, "*")
-      .replace(/÷/g, "/");
+      .replace(/÷/g, "/")
   }
 
   private convertToRPN(tokens: string[]): string[] {
@@ -421,26 +427,57 @@ class Calculator {
 
   private handleToggleSign(value: string) {
     const tokens = this.tokenize(value);
-    console.log('Tokens before toggling sign:', tokens);
+    console.log('Tokens length:', tokens.length);
+    console.log('Tokens:', tokens);
 
-    const lastToken = tokens.pop()!;
+    if (!tokens.length) return;
 
-
-    if (!isNaN(Number(lastToken))) {
-      if (lastToken.startsWith('-')) {
-        tokens.push(lastToken.slice(1)); // Remove the leading '-'
-      } else {
-        tokens.push(`-${lastToken}`); // Add a leading '-'
+    for (let i = tokens.length - 1; i >= 0; i--) {
+      if (!isNaN(Number(tokens[i]))) {
+        tokens[i] = this.toggleTokenSign(tokens[i]);
+        break;
       }
-    } else {
-      tokens.push(lastToken);
     }
 
-    this.currentInput = tokens.join('');
-    this.displayValue = lastToken.startsWith('-') ? lastToken.slice(1) : `-${lastToken}`;
-
-    this.handleUpdateDisplay();
+    this.updateLastToken(tokens);
   }
+
+  private toggleTokenSign(token: string): string {
+    console.log('Toggling sign for token:', token);
+
+    // If the token is the subtraction operator, do nothing
+    if (token === '–') {
+      return token;  // Don't modify the operator
+    }
+
+    if (token === '-') return '';  // Remove lone minus sign if it's not part of a number
+
+    if (!isNaN(Number(token))) {
+      // If the token is numeric, toggle the sign
+      return token.startsWith('-') ? token.slice(1) : `-${token}`;
+    }
+
+    return token;  // No change for non-numeric tokens
+  }
+
+  private updateLastToken(tokens: string[]) {
+    const lastToken = tokens[tokens.length - 1];
+    console.log('Last token after update:', lastToken);
+
+    // Update the display value to match the last token
+    this.displayValue = lastToken;
+
+    // Update the full current input
+    this.currentInput = tokens.join('');
+    console.log('Updated currentInput:', this.currentInput);
+    console.log('Updated displayValue:', this.displayValue);
+
+    this.handleUpdateDisplay();  // Update the UI or display
+  }
+
+
+
+
 
   /* 
     if ((!value || isNaN(parseFloat(value))) || value.match(/^0%+$/)) {
