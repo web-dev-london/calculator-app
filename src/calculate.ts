@@ -183,64 +183,49 @@ class Calculator {
   }
 
 
-  // Match numbers, decimals, and operators
-  // return expression.match(/(\d+(\.\d+)?)|[+\-*/]/g) || [];
-  // return expression.match(/(?:-?\d+(\.\d+)?)|[+\-*/]/g) || [];
-  // return expression.match(/(?:-?\d+(\.\d*)?)|[+\-*/]/g) || [];
-
-
-  // return expression.match(/(?:-?\d+(?:\.\d*)?)|[+\-*/]/g) || [];
-
-  // private tokenize(expression: string): string[] {
-  //   expression = this.normalizeExpression(expression)
-  //   // Match numbers (including negative and decimal) and operators separately
-  //   const numbers = expression.match(/-?\d+(?:\.\d*)?/g) || [];
-  //   const operators = expression.match(/[+\-*/]/g) || [];
-
-  //   return [...numbers, ...operators];
-
-  // }
-
-
-
-  private tokenize(expression: string): string[] {
-    expression = this.normalizeExpression(expression);
-
+  private tokenize(input: string): string[] {
+    input = this.normalizeExpression(input);
     const tokens: string[] = [];
-    let numBuffer = "";
+    let currentToken = '';
 
-    for (let i = 0; i < expression.length; i++) {
-      const char = expression[i];
+    // Loop through the input character by character
+    for (let i = 0; i < input.length; i++) {
+      const char = input[i];
 
-      if (/\d/.test(char) || char === ".") {
-        // Build a number, including decimals
-        numBuffer += char;
-      } else {
-        // If there is a number in buffer, push it to tokens first
-        if (numBuffer) {
-          tokens.push(numBuffer);
-          numBuffer = "";
+      // Check if the character is a digit or decimal
+      if (/\d/.test(char) || char === '.') {
+        currentToken += char;
+      }
+      // Check for operators (+, -, *, /)
+      else if (char === '-' || char === '+' || char === '*' || char === '/') {
+        // If the current token exists (it's a number), push it
+        if (currentToken) {
+          tokens.push(currentToken);
+          currentToken = '';
         }
 
-        // If the current '-' is a negative sign (not a subtraction operator)
-        if (
-          char === "-" &&
-          (tokens.length === 0 || /[+\-*/(]/.test(tokens[tokens.length - 1]))
-        ) {
-          numBuffer = "-"; // Start forming a negative number
+        // If the character is a negative sign at the beginning or after an operator,
+        // treat it as part of a negative number (like '-2' rather than '- 2')
+        if (char === '-' && (i === 0 || ['+', '-', '*', '/'].includes(input[i - 1]))) {
+          currentToken += char; // It's part of a negative number
         } else {
-          tokens.push(char); // Otherwise, it's a subtraction operator
+          tokens.push(char); // It's a subtraction or other operator
         }
+      }
+
+      // Ignore spaces (if any)
+      else if (char !== ' ') {
+        throw new Error(`Unexpected character: ${char}`);
       }
     }
 
-    // Push last number from buffer
-    if (numBuffer) tokens.push(numBuffer);
+    // Push the last token if there is one
+    if (currentToken) {
+      tokens.push(currentToken);
+    }
 
     return tokens;
   }
-
-
 
 
   private normalizeExpression(expression: string): string {
@@ -248,7 +233,6 @@ class Calculator {
       .replace(/–/g, "-")  // Normalize the subtraction operator
       .replace(/×/g, "*")
       .replace(/÷/g, "/")
-      .replace(/[–—]/g, '-'); // Normalize the minus sign
   }
 
   private convertToRPN(tokens: string[]): string[] {
