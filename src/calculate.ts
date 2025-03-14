@@ -169,6 +169,7 @@ class Calculator {
       const result = this.evaluateRPN(rpn);
       console.log('Computed result:', result);
 
+      // ✅ Handle repeated "=" presses (e.g., -2 + = -4 = -6 = -8)
 
       this.currentInput = result.toString();
       this.displayValue = result.toString(); // Ensure only the result is shown
@@ -230,9 +231,10 @@ class Calculator {
 
   private normalizeExpression(expression: string): string {
     return expression
-      .replace(/–/g, "-")  // Normalize the subtraction operator
+      .replace(/–/g, "-")
       .replace(/×/g, "*")
       .replace(/÷/g, "/")
+      .replace(/%/g, '');
   }
 
   private convertToRPN(tokens: string[]): string[] {
