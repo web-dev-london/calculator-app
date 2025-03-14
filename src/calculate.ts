@@ -189,10 +189,7 @@ class Calculator {
     // return expression.match(/(\d+(\.\d+)?)|[+\-*/]/g) || [];
 
     // return expression.match(/(?:-?\d+(\.\d+)?)|[+\-*/]/g) || [];
-
-    // Match numbers (including negatives), decimals, and operators
-    // Update regex to ensure it treats "-" as a unary operator when part of a number
-    return expression.match(/(\d+(\.\d+)?)|[+\-*/]/g) || [];
+    return expression.match(/(?:-?\d+(\.\d+)?)|[+\-*/]/g) || [];
   }
 
   private normalizeExpression(expression: string): string {
@@ -444,27 +441,17 @@ class Calculator {
 
   private toggleTokenSign(token: string): string {
     console.log('Toggling sign for token:', token);
-
-    // If the token is the subtraction operator, do nothing
-    if (token === '–') {
-      return token;  // Don't modify the operator
-    }
-
-    if (token === '-') return '';  // Remove lone minus sign if it's not part of a number
-
     if (!isNaN(Number(token))) {
-      // If the token is numeric, toggle the sign
       return token.startsWith('-') ? token.slice(1) : `-${token}`;
     }
-
-    return token;  // No change for non-numeric tokens
+    return token;
   }
 
   private updateLastToken(tokens: string[]) {
     const lastToken = tokens[tokens.length - 1];
     console.log('Last token after update:', lastToken);
 
-    // Update the display value to match the last token
+    // Update the display value
     this.displayValue = lastToken;
 
     // Update the full current input
@@ -474,9 +461,6 @@ class Calculator {
 
     this.handleUpdateDisplay();  // Update the UI or display
   }
-
-
-
 
 
   /* 
