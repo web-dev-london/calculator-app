@@ -283,9 +283,6 @@ class Calculator {
   }
 
 
-
-
-
   private normalizeExpression(expression: string): string {
     return expression
       .replace(/–/g, "-")
@@ -530,7 +527,9 @@ class Calculator {
         }
       }
     }
-    else {
+    else if (['+', '-', '*', '/'].includes(tokens[tokens.length - 1])) {
+      tokens.push('-0')
+    } else {
       // Loop through tokens to find last number
       for (let i = tokens.length - 1; i >= 0; i--) {
         if (!isNaN(Number(tokens[i]))) {
@@ -576,13 +575,17 @@ class Calculator {
 
 
 
-  private toggleTokenSign(token: string): string {
-    console.log('Toggling sign for token:', token);
-    if (!isNaN(Number(token))) {
-      // If the number is negative, make it positive; if positive, make it negative
-      return token.startsWith('-') ? token.slice(1) : `-${token}`;
+  private toggleTokenSign(value: string): string {
+    // Toggle the sign of the value (handling for `-0`)
+    if (value === '0') {
+      return '-0';  // Special case for 0 turning into -0
+    } else if (value === '-0') {
+      return '0';  // If it's -0, toggle back to 0
+    } else if (value.startsWith('-')) {
+      return value.substring(1);  // Remove the minus for positive numbers
+    } else {
+      return '-' + value;  // Add the minus for positive numbers
     }
-    return token;  // Return operator unchanged
   }
 
 
