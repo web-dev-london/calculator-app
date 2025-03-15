@@ -1,11 +1,17 @@
 import './style.css'
 
+
+interface TokenArray extends Array<string> {
+  wasDoubleNegative?: boolean;
+}
+
 class Calculator {
   private displayElement: HTMLInputElement;
   private displayValue = "";
   private currentInput = "";
   private acButton: HTMLButtonElement | null = null;
   private isResultDisplayed = false;
+
 
   constructor(displaySelector: string) {
     this.displayElement = document.querySelector(displaySelector) as HTMLInputElement;
@@ -231,10 +237,11 @@ class Calculator {
 
 
 
-  private tokenize(input: string): string[] {
+  private tokenize(input: string): TokenArray {
     input = this.normalizeExpression(input);  // Normalize input to handle cases like '--' as '+'
-    const tokens: string[] = [];
+    const tokens: TokenArray = [];
     let currentToken = '';
+    let wasDoubleNegative = false;  // Flag to track `--`
 
     for (let i = 0; i < input.length; i++) {
       const char = input[i];
@@ -252,6 +259,7 @@ class Calculator {
         // If there's a consecutive `--`, treat it as a plus
         if (char === '-' && i + 1 < input.length && input[i + 1] === '-') {
           tokens.push("+");  // Convert `--` into `+`
+          wasDoubleNegative = true;
           i++;  // Skip next `-`
         }
         else if (char === '-' && (tokens.length === 0 || ['+', '-', '*', '/'].includes(tokens[tokens.length - 1]))) {
@@ -270,7 +278,7 @@ class Calculator {
     if (currentToken) {
       tokens.push(currentToken);  // Push any leftover number
     }
-
+    tokens.wasDoubleNegative = wasDoubleNegative;
     return tokens;
   }
 
@@ -508,27 +516,33 @@ class Calculator {
 
 
   private handleToggleSign(value: string) {
-    // Tokenize the input expression
-    const tokens = this.tokenize(value);
-    console.log('Tokens length:', tokens.length);
+    const tokens = this.tokenize(value) as any;
     console.log('Tokens:', tokens);
 
     if (!tokens.length) return;
 
-    // Loop through tokens in reverse order to find the last number token
-    for (let i = tokens.length - 1; i >= 0; i--) {
-      const token = tokens[i];
-
-      if (!isNaN(Number(token))) {
-        // Toggle the sign of the number token
-        tokens[i] = this.toggleTokenSign(token);
-        break;  // Stop after changing the last number
+    // Restore `--` if previously converted to `+`
+    if (tokens.wasDoubleNegative) {
+      for (let i = tokens.length - 1; i >= 0; i--) {
+        if (tokens[i] === "+") {
+          tokens.splice(i, 1, "-");  // Change `+` back to `-`
+          break;
+        }
+      }
+    }
+    else {
+      // Loop through tokens to find last number
+      for (let i = tokens.length - 1; i >= 0; i--) {
+        if (!isNaN(Number(tokens[i]))) {
+          tokens[i] = this.toggleTokenSign(tokens[i]);
+          break;
+        }
       }
     }
 
-    // Update the display and current input
     this.updateLastToken(tokens);
   }
+
 
 
 
