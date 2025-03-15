@@ -105,7 +105,6 @@ class Calculator {
       return;
     } else if (value === '%') {
       this.handlePercentage(this.currentInput);
-      this.currentInput += value;
     } else if (this.isOperator(value)) {
       if (this.acButton) {
         this.acButton.innerText = "AC";
@@ -437,6 +436,8 @@ class Calculator {
     }
 
 
+
+
     if (!value || isNaN(parseFloat(value))) return;
 
     const tokens = this.tokenize(this.currentInput);
@@ -720,21 +721,3 @@ class Clock {
 
 // Initialize the Clock instance
 new Clock('.hour', '.minute');
-
-
-/* 
-       // Handle cases like "2+-0" correctly
-    const tokens = this.tokenize(this.currentInput);
-    if (tokens.length >= 2 && tokens[tokens.length - 1] === "0") {
-      // If it's already "-0", remove the minus sign
-      if (this.currentInput.endsWith("-0")) {
-        this.currentInput = this.currentInput.slice(0, -2) + "0";  // Remove the minus from "-0"
-        this.displayValue = this.displayValue.slice(0, -2) + "0";  // Ensure display value is updated
-      } else {
-        // Otherwise, add the minus to "0" to make it "-0"
-        this.currentInput = this.currentInput.slice(0, -1) + "-0";
-        this.displayValue = this.displayValue.slice(0, -1) + "-0";
-      }
-      return;
-    }
-     */
