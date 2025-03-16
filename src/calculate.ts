@@ -49,6 +49,7 @@ class Calculator {
       }
     }
 
+
     // Display value in UI
     if (!isNaN(Number(value))) {
       // Handle the case where the display is "-0" and the user presses a number.
@@ -590,7 +591,11 @@ class Calculator {
         // Handles '0+-0'
         (this.currentInput.length === 4 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1]) && this.displayValue === '-0' && this.currentInput.endsWith('0'));
 
-      this.acButton.innerText = shouldKeepAC ? "AC" : "C";
+      if (this.displayValue === '-0') {
+        this.acButton.innerText = "C";
+      } else {
+        this.acButton.innerText = shouldKeepAC ? "AC" : "C";
+      }
     }
   }
 
