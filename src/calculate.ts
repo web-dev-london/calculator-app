@@ -426,17 +426,12 @@ class Calculator {
   private handlePercentage(value: string) {
     // If currentInput is '-0', set displayValue to '0'
     if (this.acButton) {
-      if (this.currentInput.match(/^0%+$/)) {
-        return;
-      }
       if (this.currentInput === '-0') {
         this.currentInput = '0';
         this.displayValue = '0';
       }
+      this.acButton.innerText = "AC";
     }
-
-
-
 
     if (!value || isNaN(parseFloat(value))) return;
 
@@ -517,6 +512,13 @@ class Calculator {
     const tokens = this.tokenize(value) as any;
     console.log('Tokens:', tokens);
 
+    // Handle case currentInput is empty and tokens is empty -0 
+    if (this.currentInput === '' && tokens.length === 0) {
+      this.currentInput = '-0';
+      this.displayValue = this.currentInput;
+      tokens.push('0')
+    }
+
     if (!tokens.length) return;
 
     // Restore `--` if previously converted to `+`
@@ -577,6 +579,7 @@ class Calculator {
 
 
   private toggleTokenSign(value: string): string {
+    console.log('Toggling sign for value:', value);
     // Toggle the sign of the value (handling for `-0`)
     if (value === '0') {
       return '-0';  // Special case for 0 turning into -0
