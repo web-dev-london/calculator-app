@@ -420,16 +420,17 @@ class Calculator {
   // }
 
   private handlePercentage(value: string) {
-    // If currentInput is '-0', set displayValue to '0'
-    if (this.acButton) {
-      if (this.currentInput === '-0') {
-        this.currentInput = '0';
-        this.displayValue = '0';
-      }
-      this.acButton.innerText = "AC";
-    }
-
     if (!value || isNaN(parseFloat(value))) return;
+
+    // Handle special case for -0 and 0 input
+    if (this.currentInput === "-0" || this.currentInput === "0") {
+      if (this.acButton) {
+        this.currentInput = "0";  // Make sure it stays 0 and not -0
+        this.displayValue = "0";  // Update the display as well
+        this.acButton.innerText = "AC";  // Keep the AC button as "AC"
+        return;
+      }
+    }
 
     const tokens = this.tokenize(this.currentInput);
     console.log('Tokens before percentage:', tokens);
@@ -448,16 +449,10 @@ class Calculator {
       const lastNumber = parseFloat(tokens.pop()!);
       const operator = tokens[tokens.length - 1];
 
-      console.log('Last number:', lastNumber);
-      console.log('Operator:', operator);
-
       let percentageValue: undefined | number;
 
       if (!isNaN(lastNumber)) {
         let prevNumberStr = tokens[0] === '-' ? '-' + tokens[1] : tokens[tokens.length - 2];
-
-        // Log for debugging
-        console.log('Previous number:', prevNumberStr);
 
         const prevNumber = parseFloat(prevNumberStr);
 
@@ -468,9 +463,6 @@ class Calculator {
           percentageValue = lastNumber / 100;
         }
 
-        // Log for debugging
-        console.log('Percentage value:', percentageValue);
-
         // Update currentInput by replacing last number with its percentage value
         tokens.push(percentageValue?.toString() ?? '');
         this.currentInput = tokens.join(""); // Reconstruct the expression
@@ -480,9 +472,7 @@ class Calculator {
         console.log('Updated currentInput:', this.currentInput);
         console.log('Updated displayValue:', this.displayValue);  // Show the percentage value
       }
-
     }
-
     this.isResultDisplayed = true;
   }
 
@@ -523,7 +513,6 @@ class Calculator {
     this.updateLastToken(tokens);
   }
 
-
   private toggleTokenSign(value: string): string {
     console.log('Toggling sign for value:', value);
     // Toggle the sign of the value (handling for `-0`)
@@ -537,7 +526,6 @@ class Calculator {
       return '-' + value;  // Add the minus for positive numbers
     }
   }
-
 
   private updateLastToken(tokens: string[]) {
     const lastToken = tokens[tokens.length - 1];
@@ -597,7 +585,6 @@ class Calculator {
         this.currentInput === "" ||  // No input at all
         this.currentInput === "0" || // Only "0" entered
         this.currentInput === "-0" || // Handling "-0" case
-        this.currentInput.startsWith('%') || // Handles "%"
         (this.currentInput.length === 2 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1])) ||  // Handles "0+"
         (this.currentInput.length === 3 && this.currentInput.startsWith("0") && this.isOperator(this.currentInput[1]) && this.currentInput.endsWith('0')) || // Handles "0+0"
         // Handles '0+-0'
