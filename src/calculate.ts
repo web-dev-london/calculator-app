@@ -189,7 +189,6 @@ class Calculator {
     this.handleUpdateDisplay();
   }
 
-
   // private tokenize(input: string): string[] {
   //   input = this.normalizeExpression(input);
   //   const tokens: string[] = [];
@@ -233,8 +232,6 @@ class Calculator {
 
   //   return tokens;
   // }
-
-
 
   private tokenize(input: string): TokenArray {
     input = this.normalizeExpression(input);  // Normalize input to handle cases like '--' as '+'
@@ -280,7 +277,6 @@ class Calculator {
     tokens.wasDoubleNegative = wasDoubleNegative;
     return tokens;
   }
-
 
   private normalizeExpression(expression: string): string {
     return expression
@@ -490,24 +486,6 @@ class Calculator {
     this.isResultDisplayed = true;
   }
 
-  // private handleToggleSign(value: string) {
-  //   // –
-  //   if (!value || isNaN(parseFloat(value))) {
-  //     this.currentInput = '-0'
-  //     this.displayValue = '-0'
-  //     return;
-  //   }
-  //   if (value.startsWith('-')) {
-  //     this.currentInput = value.slice(1);
-  //   } else {
-  //     this.currentInput = `-${value}`;
-  //   }
-
-  //   this.displayValue = this.currentInput;
-  //   this.handleUpdateDisplay();
-  // }
-
-
   private handleToggleSign(value: string) {
     const tokens = this.tokenize(value) as any;
     console.log('Tokens:', tokens);
@@ -546,38 +524,6 @@ class Calculator {
   }
 
 
-
-
-  // private handleToggleSign(value: string) {
-  //   const tokens = this.tokenize(value);
-  //   console.log('Tokens length:', tokens.length);
-  //   console.log('Tokens:', tokens);
-
-  //   if (!tokens.length) return;
-
-  //   // Loop through tokens in reverse order to find the first number
-  //   for (let i = tokens.length - 1; i >= 0; i--) {
-  //     const token = tokens[i];
-
-  //     if (!isNaN(Number(token))) {
-  //       // Toggle the first number found
-  //       if (i > 0 && tokens[i - 1] === "-") {
-  //         // If previous token is '-', remove it (switch sign)
-  //         tokens.splice(i - 1, 1);
-  //       } else {
-  //         // Otherwise, toggle sign normally
-  //         tokens[i] = this.toggleTokenSign(token);
-  //       }
-  //       break;
-  //     }
-  //   }
-
-  //   this.updateLastToken(tokens);
-  // }
-
-
-
-
   private toggleTokenSign(value: string): string {
     console.log('Toggling sign for value:', value);
     // Toggle the sign of the value (handling for `-0`)
@@ -607,7 +553,6 @@ class Calculator {
 
     this.handleUpdateDisplay();  // Update the UI or display
   }
-
 
   private handleClearCurrentInput() {
     // Clear only the current input when result is displayed
